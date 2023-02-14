@@ -1,0 +1,36 @@
+name: deploy
+on:
+  push:
+    branches:
+      - main
+      - dev
+
+jobs:
+  deploy-to-space:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      # Prod Deploy
+      - if: github.ref == 'refs/heads/main'
+        run: echo ${{secrets.SPACE_FILE_PROD}} | base64 --decode >> Spacefile
+
+      - if: github.ref == 'refs/heads/main'
+        name: Deta Space Deployment Github Action
+        uses: neobrains/space-deployment-github-action@v0.3
+        with:
+          access_token: ${{ secrets.SPACE_ACCESS_TOKEN }}
+          project_id: ${{ secrets.SPACE_PROJECT_ID_PROD }}
+          space_push: true
+
+      # Dev Deploy 
+      - if: github.ref == 'refs/heads/dev'
+        run: echo ${{secrets.SPACE_FILE_DEV}} | base64 --decode >> Spacefile
+
+      - if: github.ref == 'refs/heads/dev'
+        name: Deta Space Deployment Github Action
+        uses: neobrains/space-deployment-github-action@v0.3
+        with:
+          access_token: ${{ secrets.SPACE_ACCESS_TOKEN }}
+          project_id: ${{ secrets.SPACE_PROJECT_ID_DEV }}
+          space_push: true
