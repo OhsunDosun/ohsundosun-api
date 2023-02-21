@@ -30,7 +30,9 @@ func setSwagger(r *gin.Engine) {
 		docs.SwaggerInfo.BasePath = "/"
 		docs.SwaggerInfo.Title = "오순도순 API"
 
-		r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
+		r.GET("/swagger/*any", gin.BasicAuth(gin.Accounts{
+			os.Getenv("SWAGGER_ID"): os.Getenv("SWAGGER_PWD"),
+		}), ginSwagger.WrapHandler(swaggerfiles.Handler))
 	}
 }
 
