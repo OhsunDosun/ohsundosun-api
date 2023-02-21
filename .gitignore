@@ -47,3 +47,8 @@ go.work
 
 .space
 Spacefile
+
+.env
+
+tmp
+__debug_bin

@@ -10,6 +10,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: "^1.19.5"
+
+      - name: Build Swagger
+        run: go install github.com/swaggo/swag/cmd/swag@latest && swag init
 
       # Prod Deploy
       - if: github.ref == 'refs/heads/main'
@@ -23,7 +29,7 @@ jobs:
           project_id: ${{ secrets.SPACE_PROJECT_ID_PROD }}
           space_push: true
 
-      # Dev Deploy 
+      # Dev Deploy
       - if: github.ref == 'refs/heads/dev'
         run: echo ${{secrets.SPACE_FILE_DEV}} | base64 --decode >> Spacefile
 
