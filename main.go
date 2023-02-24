@@ -7,12 +7,12 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/joho/godotenv/autoload"
 
-	v1 "ohsundosun-api/v1"
-
-	docs "ohsundosun-api/docs"
-
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+
+	_ "ohsundosun-api/db"
+	docs "ohsundosun-api/docs"
+	v1 "ohsundosun-api/v1"
 )
 
 func setEnv() {
@@ -35,6 +35,18 @@ func setSwagger(r *gin.Engine) {
 		}), ginSwagger.WrapHandler(swaggerfiles.Handler))
 	}
 }
+
+// @securityDefinitions.apikey AppAuth
+// @in header
+// @name App-Key
+
+// @securityDefinitions.apikey AccessJWTAuth
+// @in header
+// @name Access-Token
+
+// @securityDefinitions.apikey RefreshJWTAuth
+// @in header
+// @name Refresh-Token
 
 func main() {
 	setEnv()
