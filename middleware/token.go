@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"net/http"
+	"ohsundosun-api/db"
 	"ohsundosun-api/model"
 	"os"
 
@@ -11,23 +12,8 @@ import (
 
 func CheckAccessToken() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		headers := c.Request.Header["Access-Token"]
+		cookie, err := c.Request.Cookie("access-token")
 
-		if len(headers) < 1 {
-			c.JSON(http.StatusUnauthorized, model.DefaultResponse{
-				Message: "unauthorized_access_token",
-			})
-			c.Abort()
-			return
-		}
-
-		tokenString := headers[0]
-
-		claims := model.TokenClaims{}
-
-		_, err := jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (interface{}, error) {
-			return []byte(os.Getenv("ACCESS_TOKEN_KEY")), nil
-		})
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, model.DefaultResponse{
 				Message: "unauthorized_access_token",
@@ -36,7 +22,42 @@ func CheckAccessToken() gin.HandlerFunc {
 			return
 		}
 
-		c.Set("userKey", claims.Key)
+		tokenString := cookie.Value
+
+		if tokenString == "" {
+			c.JSON(http.StatusUnauthorized, model.DefaultResponse{
+				Message: "unauthorized_access_token",
+			})
+			c.Abort()
+			return
+		}
+
+		claims := model.TokenClaims{}
+
+		_, err = jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (interface{}, error) {
+			return []byte(os.Getenv("ACCESS_TOKEN_KEY")), nil
+		})
+
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, model.DefaultResponse{
+				Message: "unauthorized_access_token",
+			})
+			c.Abort()
+			return
+		}
+
+		var user model.User
+
+		err = db.BaseUser.Get(claims.Key, &user)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, &model.DefaultResponse{
+				Message: "unauthorized_access_token",
+			})
+			c.Abort()
+			return
+		}
+
+		c.Set("user", user)
 
 		c.Next()
 	}
@@ -44,9 +65,9 @@ func CheckAccessToken() gin.HandlerFunc {
 
 func CheckRefreshToken() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		headers := c.Request.Header["Refresh-Token"]
+		cookie, err := c.Request.Cookie("refresh-token")
 
-		if len(headers) < 1 {
+		if err != nil {
 			c.JSON(http.StatusUnauthorized, model.DefaultResponse{
 				Message: "unauthorized_refresh_token",
 			})
@@ -54,11 +75,19 @@ func CheckRefreshToken() gin.HandlerFunc {
 			return
 		}
 
-		tokenString := headers[0]
+		tokenString := cookie.Value
+
+		if tokenString == "" {
+			c.JSON(http.StatusUnauthorized, model.DefaultResponse{
+				Message: "unauthorized_refresh_token",
+			})
+			c.Abort()
+			return
+		}
 
 		claims := model.TokenClaims{}
 
-		_, err := jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (interface{}, error) {
+		_, err = jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (interface{}, error) {
 			return []byte(os.Getenv("REFRESH_TOKEN_KEY")), nil
 		})
 
@@ -70,7 +99,18 @@ func CheckRefreshToken() gin.HandlerFunc {
 			return
 		}
 
-		c.Set("userKey", claims.Key)
+		var user model.User
+
+		err = db.BaseUser.Get(claims.Key, &user)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, &model.DefaultResponse{
+				Message: "unauthorized_refresh_token",
+			})
+			c.Abort()
+			return
+		}
+
+		c.Set("user", user)
 
 		c.Next()
 	}

@@ -14,6 +14,7 @@ func SetRoute(rg *gin.RouterGroup) {
 		auth.POST("sign/new", middleware.CheckRefreshToken(), NewSign)
 
 		auth.GET("verify/email/:email", VerifyEmail)
+		auth.GET("verify/nickname/:nickname", VerifyNickname)
 		auth.POST("password/new", NewPassword)
 	}
 }

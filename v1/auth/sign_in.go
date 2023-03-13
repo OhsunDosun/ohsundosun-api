@@ -5,6 +5,9 @@ import (
 	"ohsundosun-api/db"
 	"ohsundosun-api/model"
 	"ohsundosun-api/util"
+	"os"
+	"strings"
+	"time"
 
 	"github.com/deta/deta-go/service/base"
 	"github.com/gin-gonic/gin"
@@ -13,7 +16,7 @@ import (
 
 // SignIn godoc
 // @Tags Auth
-// @Summary 로그인 API
+// @Summary 로그인
 // @Description 로그인
 // @Security AppAuth
 // @Param request body auth.SignIn.request true "query params"
@@ -23,6 +26,7 @@ import (
 // @Router /v1/auth/sign [post]
 func SignIn(c *gin.Context) {
 	type request struct {
+		Type     string `json:"type" enums:"DEFAULT, NEW_PASSWORD" binding:"required" example:"DEFAULT"`
 		Email    string `json:"email" swaggertype:"string" format:"email" binding:"required" example:"test@test.com"`
 		Password string `json:"password" binding:"required" example:"1234"`
 	}
@@ -63,21 +67,62 @@ func SignIn(c *gin.Context) {
 
 	user := result[0]
 
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
+	if strings.ToUpper(req.Type) == "NEW_PASSWORD" {
+		if !user.NewPasswordCreatedAt.Valid || !user.NewPassword.Valid {
+			c.JSON(http.StatusBadRequest, &model.DefaultResponse{
+				Message: "bad_password",
+			})
+			c.Abort()
+			return
+		}
 
-	if err != nil {
-		c.JSON(http.StatusBadRequest, &model.DefaultResponse{
-			Message: "bad_password",
-		})
-		c.Abort()
-		return
+		now := time.Now()
+
+		if now.Sub(time.Unix(user.NewPasswordCreatedAt.Int64, 0)) > 3*time.Minute {
+			c.JSON(http.StatusBadRequest, &model.DefaultResponse{
+				Message: "bad_password",
+			})
+			c.Abort()
+			return
+		}
+
+		err = bcrypt.CompareHashAndPassword([]byte(user.NewPassword.String), []byte(req.Password))
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, &model.DefaultResponse{
+				Message: "bad_password",
+			})
+			c.Abort()
+			return
+		}
+	} else {
+		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, &model.DefaultResponse{
+				Message: "bad_password",
+			})
+			c.Abort()
+			return
+		}
 	}
+
+	isSecure := true
+	if os.Getenv("APP_MODE") == "local" {
+		isSecure = false
+	}
+
+	accessToken := util.GetAccessToken(user)
+	refreshToken := util.GetRefreshToken(user)
+
+	c.SetCookie("access-token", accessToken, 60*30, "/", os.Getenv("APP_HOST"), isSecure, true)
+	c.SetCookie("refresh-token", refreshToken, 60*60*24*14, "/", os.Getenv("APP_HOST"), isSecure, true)
 
 	c.JSON(http.StatusCreated, &model.DataResponse{
 		Message: "success",
 		Data: &data{
-			AccessToken:  util.GetAccessToken(user),
-			RefreshToken: util.GetRefreshToken(user),
+			AccessToken:  accessToken,
+			RefreshToken: refreshToken,
 		},
 	})
 }

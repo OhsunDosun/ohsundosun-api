@@ -9,7 +9,7 @@ import (
 )
 
 func SignCheck(c *gin.Context) {
-	fmt.Println(c.GetString("userKey"))
+	fmt.Println(c.Get("user"))
 
 	c.JSON(http.StatusCreated, &model.DefaultResponse{
 		Message: "success",

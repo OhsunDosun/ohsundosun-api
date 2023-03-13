@@ -11,7 +11,7 @@ import (
 
 // NewPassword godoc
 // @Tags Auth
-// @Summary 비밀번호 재발급 API
+// @Summary 비밀번호 재발급
 // @Description 비밀번호 재발급
 // @Security AppAuth
 // @Param request body auth.NewPassword.request true "query params"

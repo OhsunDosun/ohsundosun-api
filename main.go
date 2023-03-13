@@ -16,7 +16,7 @@ import (
 )
 
 func setEnv() {
-	if os.Getenv("APP_MODE") == "dev" {
+	if os.Getenv("APP_MODE") != "prod" {
 		gin.SetMode(gin.DebugMode)
 	} else {
 		gin.SetMode(gin.ReleaseMode)
@@ -24,7 +24,7 @@ func setEnv() {
 }
 
 func setSwagger(r *gin.Engine) {
-	if os.Getenv("APP_MODE") == "dev" {
+	if os.Getenv("APP_MODE") != "prod" {
 		docs.SwaggerInfo.Version = "0.0.1"
 		docs.SwaggerInfo.Host = os.Getenv("APP_HOST")
 		docs.SwaggerInfo.BasePath = "/"
@@ -39,14 +39,6 @@ func setSwagger(r *gin.Engine) {
 // @securityDefinitions.apikey AppAuth
 // @in header
 // @name App-Key
-
-// @securityDefinitions.apikey AccessJWTAuth
-// @in header
-// @name Access-Token
-
-// @securityDefinitions.apikey RefreshJWTAuth
-// @in header
-// @name Refresh-Token
 
 func main() {
 	setEnv()

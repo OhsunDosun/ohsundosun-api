@@ -8,22 +8,22 @@ import (
 	"ohsundosun-api/db"
 	"ohsundosun-api/enum"
 	"ohsundosun-api/model"
+	"ohsundosun-api/util"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
-
-	"github.com/deta/deta-go/service/base"
 )
 
 // SignUp godoc
 // @Tags Users
-// @Summary 회원가입 API
+// @Summary 회원가입
 // @Description 회원가입
 // @Security AppAuth
 // @Param request body users.SignUp.request true "query params"
 // @Success 201 {object} model.DefaultResponse "success"
 // @Success 400 {object} model.DefaultResponse "bad_request"
-// @Success 409 {object} model.DefaultResponse "duplicated_email"
+// @Success 409 {object} model.DefaultResponse "duplicated_email, duplicated_nickname"
 // @Success 500 {object} model.DefaultResponse "failed_put"
 // @Router /v1/users [post]
 func SignUp(c *gin.Context) {
@@ -53,20 +53,17 @@ func SignUp(c *gin.Context) {
 		return
 	}
 
-	query := base.Query{
-		{"email": req.Email},
-	}
-
-	var result []*model.User
-
-	db.BaseUser.Fetch(&base.FetchInput{
-		Q:    query,
-		Dest: &result,
-	})
-
-	if len(result) > 0 {
+	if !util.VerifyEmail(&req.Email) {
 		c.JSON(http.StatusConflict, &model.DefaultResponse{
 			Message: "duplicated_email",
+		})
+		c.Abort()
+		return
+	}
+
+	if !util.VerifyNickname(&req.Nickname) {
+		c.JSON(http.StatusConflict, &model.DefaultResponse{
+			Message: "duplicated_nickname",
 		})
 		c.Abort()
 		return
@@ -75,11 +72,14 @@ func SignUp(c *gin.Context) {
 	hashPassword, _ := bcrypt.GenerateFromPassword([]byte(req.Password), 10)
 
 	u := &model.User{
-		Email:     req.Email,
-		Password:  string(hashPassword),
-		Nickname:  req.Nickname,
-		MBTI:      mbti,
-		CreatedAt: time.Now().Unix(),
+		Key:          uuid.New().String(),
+		Email:        req.Email,
+		Password:     string(hashPassword),
+		Nickname:     req.Nickname,
+		MBTI:         mbti,
+		CreatedAt:    time.Now().Unix(),
+		Notification: true,
+		Active:       true,
 	}
 
 	_, err = db.BaseUser.Put(u)

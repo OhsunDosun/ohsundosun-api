@@ -2,16 +2,15 @@ package auth
 
 import (
 	"net/http"
-	"ohsundosun-api/db"
 	"ohsundosun-api/model"
+	"ohsundosun-api/util"
 
-	"github.com/deta/deta-go/service/base"
 	"github.com/gin-gonic/gin"
 )
 
 // VerifyEmail godoc
 // @Tags Auth
-// @Summary 이메일 체크 API
+// @Summary 이메일 체크
 // @Description 이메일 체크
 // @Security AppAuth
 // @Param email path string true "Email"
@@ -24,32 +23,10 @@ func VerifyEmail(c *gin.Context) {
 
 	email := c.Param("email")
 
-	query := base.Query{
-		{"email": email},
-	}
-
-	var result []*model.User
-
-	db.BaseUser.Fetch(&base.FetchInput{
-		Q:    query,
-		Dest: &result,
-	})
-
-	if len(result) == 0 {
-		c.JSON(http.StatusOK, &model.DataResponse{
-			Message: "success",
-			Data: &reponse{
-				Available: true,
-			},
-		})
-		c.Abort()
-		return
-	}
-
 	c.JSON(http.StatusOK, &model.DataResponse{
 		Message: "success",
 		Data: &reponse{
-			Available: false,
+			Available: util.VerifyEmail(&email),
 		},
 	})
 }
