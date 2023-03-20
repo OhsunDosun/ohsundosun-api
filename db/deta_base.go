@@ -10,6 +10,7 @@ import (
 
 var Deta *deta.Deta
 var BaseUser *base.Base
+var BaseRating *base.Base
 
 func init() {
 	d, err := deta.New(deta.WithProjectKey(os.Getenv("DETA_COLLECTION_KEY")))
@@ -27,4 +28,12 @@ func init() {
 	}
 
 	BaseUser = user
+
+	rating, err := base.New(d, "Rating")
+	if err != nil {
+		fmt.Println("failed to init new Base instance:", err)
+		return
+	}
+
+	BaseRating = rating
 }

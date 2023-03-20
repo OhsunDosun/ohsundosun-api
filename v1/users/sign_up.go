@@ -29,7 +29,7 @@ import (
 func SignUp(c *gin.Context) {
 	type request struct {
 		Email    string `json:"email" swaggertype:"string" format:"email" binding:"required" example:"test@test.com"`
-		Password string `json:"password" binding:"required" example:"1234"`
+		Password string `json:"password" binding:"required,min=8,max=16" example:"1234"`
 		Nickname string `json:"nickname" binding:"required" example:"test"`
 		MBTI     string `json:"mbti" enums:"INTJ,INTP,ENTJ,ENTP,INFJ,INFP,ENFJ,ENFP,ISFJ,ISTJ,ESFJ,ESTJ,ISFP,ISTP,ESFP,ESTP" binding:"required" example:"INTP"`
 	}

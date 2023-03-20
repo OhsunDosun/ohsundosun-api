@@ -28,7 +28,7 @@ func SignIn(c *gin.Context) {
 	type request struct {
 		Type     string `json:"type" enums:"DEFAULT, NEW_PASSWORD" binding:"required" example:"DEFAULT"`
 		Email    string `json:"email" swaggertype:"string" format:"email" binding:"required" example:"test@test.com"`
-		Password string `json:"password" binding:"required" example:"1234"`
+		Password string `json:"password" binding:"required,min=8,max=16" example:"1234"`
 	}
 
 	type data struct {
