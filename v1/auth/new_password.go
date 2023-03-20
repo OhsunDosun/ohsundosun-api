@@ -21,7 +21,7 @@ import (
 // @Router /v1/auth/password/new [post]
 func NewPassword(c *gin.Context) {
 	type request struct {
-		Email string `json:"email" swaggertype:"string" format:"email" binding:"required" example:"test@test.com"`
+		Email string `json:"email" swaggertype:"string" format:"email" binding:"required,email" example:"test@test.com"`
 	}
 
 	req := &request{}

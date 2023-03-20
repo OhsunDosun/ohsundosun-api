@@ -28,8 +28,8 @@ import (
 // @Router /v1/users [post]
 func SignUp(c *gin.Context) {
 	type request struct {
-		Email    string `json:"email" swaggertype:"string" format:"email" binding:"required" example:"test@test.com"`
-		Password string `json:"password" binding:"required,min=8,max=16" example:"1234"`
+		Email    string `json:"email" swaggertype:"string" format:"email" binding:"required,email" example:"test@test.com"`
+		Password string `json:"password" binding:"required,alphanum,min=8,max=16" example:"test1234"`
 		Nickname string `json:"nickname" binding:"required" example:"test"`
 		MBTI     string `json:"mbti" enums:"INTJ,INTP,ENTJ,ENTP,INFJ,INFP,ENFJ,ENFP,ISFJ,ISTJ,ESFJ,ESTJ,ISFP,ISTP,ESFP,ESTP" binding:"required" example:"INTP"`
 	}

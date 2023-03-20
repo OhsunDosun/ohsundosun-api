@@ -18,8 +18,8 @@ import (
 // @Router /v1/users/password [patch]
 func UpdatePaasword(c *gin.Context) {
 	type request struct {
-		OldPassword string `json:"oldPassword" binding:"required" example:"1234"`
-		NewPassword string `json:"newPassword" binding:"required" example:"1234"`
+		OldPassword string `json:"oldPassword" binding:"required,alphanum,min=8,max=16" example:"test1234"`
+		NewPassword string `json:"newPassword" binding:"required,alphanum,min=8,max=16" example:"test1234"`
 	}
 
 	req := &request{}
