@@ -15,10 +15,10 @@ type Post struct {
 	Type         enum.PostType `json:"type"`
 	Images       []string      `json:"images"`
 	CreatedAt    int64         `json:"createdAt"`
-	UpdatedAt    int64         `json:"updatedAt"`
 	Active       bool          `json:"active"`
 	LikeCount    int8          `json:"likeCount"`
 	CommentCount int8          `json:"commentCount"`
 
+	UpdatedAt  sql.NullInt64 `json:"updatedAt"`
 	InActiveAt sql.NullInt64 `json:"inActiveAt"`
 }

@@ -9,9 +9,9 @@ const (
 )
 
 var postTypeList = []string{
-	"daily",
-	"love",
-	"friend",
+	"DAILY",
+	"LOVE",
+	"FRIEND",
 }
 
 func (m PostType) String() string { return postTypeList[(m - 1)] }

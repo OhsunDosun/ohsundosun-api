@@ -19,7 +19,7 @@ func GetUser(c *gin.Context) {
 
 	type data struct {
 		Nickname     string `json:"nickname" binding:"required" example:"test"`
-		MBTI         string `json:"mbti" binding:"required" example:"intp"`
+		MBTI         string `json:"mbti" binding:"required" example:"INTP"`
 		Notification bool   `json:"notification" binding:"required" example:"true"`
 	}
 
