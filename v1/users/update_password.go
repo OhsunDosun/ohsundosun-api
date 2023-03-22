@@ -12,7 +12,7 @@ import (
 // @Summary 비밀번호 변경
 // @Description 비밀번호 변경
 // @Security AppAuth
-// @Param request body users.UpdatePaasword.request true "query params"
+// @Param request body users.UpdatePaasword.request true "body params"
 // @Success 200 {object} model.DefaultResponse "success"
 // @Success 400 {object} model.DefaultResponse "bad_request"
 // @Router /v1/users/password [patch]

@@ -5,11 +5,11 @@ import (
 	"ohsundosun-api/db"
 	"ohsundosun-api/enum"
 	"ohsundosun-api/model"
+	"ohsundosun-api/util"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 // AddPost godoc
@@ -17,7 +17,7 @@ import (
 // @Summary 게시물 추가
 // @Description 게시물 추가
 // @Security AppAuth
-// @Param request body posts.AddPost.request true "query params"
+// @Param request body posts.AddPost.request true "body params"
 // @Success 201 {object} model.DefaultResponse "success"
 // @Success 400 {object} model.DefaultResponse "bad_request"
 // @Success 500 {object} model.DefaultResponse "failed_put"
@@ -52,7 +52,7 @@ func AddPost(c *gin.Context) {
 	}
 
 	p := &model.Post{
-		Key:       uuid.New().String(),
+		Key:       util.NewULID().String(),
 		UserKey:   user.Key,
 		Nickname:  user.Nickname,
 		MBTI:      user.MBTI,

@@ -11,7 +11,6 @@ import (
 	"ohsundosun-api/util"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -20,7 +19,7 @@ import (
 // @Summary 회원가입
 // @Description 회원가입
 // @Security AppAuth
-// @Param request body users.SignUp.request true "query params"
+// @Param request body users.SignUp.request true "body params"
 // @Success 201 {object} model.DefaultResponse "success"
 // @Success 400 {object} model.DefaultResponse "bad_request"
 // @Success 409 {object} model.DefaultResponse "duplicated_email, duplicated_nickname"
@@ -72,7 +71,7 @@ func SignUp(c *gin.Context) {
 	hashPassword, _ := bcrypt.GenerateFromPassword([]byte(req.Password), 10)
 
 	u := &model.User{
-		Key:          uuid.New().String(),
+		Key:          util.NewULID().String(),
 		Email:        req.Email,
 		Password:     string(hashPassword),
 		Nickname:     req.Nickname,

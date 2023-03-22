@@ -14,7 +14,7 @@ import (
 // @Summary 비밀번호 재발급
 // @Description 비밀번호 재발급
 // @Security AppAuth
-// @Param request body auth.NewPassword.request true "query params"
+// @Param request body auth.NewPassword.request true "body params"
 // @Success 201 {object} model.DefaultResponse "success"
 // @Success 400 {object} model.DefaultResponse "bad_request, bad_password"
 // @Success 404 {object} model.DefaultResponse "not_found_user"

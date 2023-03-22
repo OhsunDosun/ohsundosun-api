@@ -19,7 +19,7 @@ import (
 // @Summary 로그인
 // @Description 로그인
 // @Security AppAuth
-// @Param request body auth.SignIn.request true "query params"
+// @Param request body auth.SignIn.request true "body params"
 // @Success 201 {object} model.DataResponse{data=auth.SignIn.data} "success"
 // @Success 400 {object} model.DefaultResponse "bad_request, bad_password"
 // @Success 404 {object} model.DefaultResponse "not_found_user"

@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"ohsundosun-api/db"
 	"ohsundosun-api/model"
+	"ohsundosun-api/util"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 // AddRating godoc
@@ -16,7 +16,7 @@ import (
 // @Summary 평가 추가
 // @Description 평가 추가
 // @Security AppAuth
-// @Param request body users.AddRating.request true "query params"
+// @Param request body users.AddRating.request true "body params"
 // @Success 201 {object} model.DefaultResponse "success"
 // @Success 400 {object} model.DefaultResponse "bad_request"
 // @Success 500 {object} model.DefaultResponse "failed_put"
@@ -54,7 +54,7 @@ func AddRating(c *gin.Context) {
 	}
 
 	u := &model.Rating{
-		Key:       uuid.New().String(),
+		Key:       util.NewULID().String(),
 		UserKey:   user.Key,
 		Feedback:  feedback,
 		CreatedAt: time.Now().Unix(),

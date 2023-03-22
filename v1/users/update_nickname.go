@@ -14,7 +14,7 @@ import (
 // @Summary 닉네임 변경
 // @Description 닉네임 변경
 // @Security AppAuth
-// @Param request body users.UpdateNickname.request true "query params"
+// @Param request body users.UpdateNickname.request true "body params"
 // @Success 200 {object} model.DefaultResponse "success"
 // @Success 500 {object} model.DefaultResponse "failed_update"
 // @Router /v1/users/nickname [patch]

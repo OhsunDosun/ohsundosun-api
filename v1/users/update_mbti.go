@@ -16,7 +16,7 @@ import (
 // @Summary MBTI 변경
 // @Description MBTI 변경
 // @Security AppAuth
-// @Param request body users.UpdateMBTI.request true "query params"
+// @Param request body users.UpdateMBTI.request true "body params"
 // @Success 200 {object} model.DefaultResponse "success"
 // @Success 500 {object} model.DefaultResponse "failed_update"
 // @Router /v1/users/mbti [patch]
