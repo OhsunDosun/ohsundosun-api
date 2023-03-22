@@ -31,15 +31,16 @@ func GetPosts(c *gin.Context) {
 	}
 
 	type data struct {
-		Key          string `json:"key"  binding:"required" example:"test"`
-		MBTI         string `json:"mbti" binding:"required" example:"INTP"`
-		Type         string `json:"type"  binding:"required" example:"DAILY"`
-		Nickname     string `json:"nickname"  binding:"required" example:"test"`
-		Title        string `json:"title"  binding:"required" example:"test"`
-		Content      string `json:"content"  binding:"required" example:"test"`
-		CreatedAt    int64  `json:"createdAt"  binding:"required"`
-		LikeCount    int8   `json:"likeCount" binding:"required" example:"0"`
-		CommentCount int8   `json:"commentCount" binding:"required" example:"0"`
+		Key          string   `json:"key"  binding:"required" example:"test"`
+		MBTI         string   `json:"mbti" binding:"required" example:"INTP"`
+		Type         string   `json:"type"  binding:"required" example:"DAILY"`
+		Nickname     string   `json:"nickname"  binding:"required" example:"test"`
+		Title        string   `json:"title"  binding:"required" example:"test"`
+		Content      string   `json:"content"  binding:"required" example:"test"`
+		Images       []string `json:"images"  binding:"required" example:"test.png,test.png"`
+		CreatedAt    int64    `json:"createdAt"  binding:"required"`
+		LikeCount    int8     `json:"likeCount" binding:"required" example:"0"`
+		CommentCount int8     `json:"commentCount" binding:"required" example:"0"`
 	}
 
 	req := &request{}
@@ -102,11 +103,12 @@ func GetPosts(c *gin.Context) {
 		for _, post := range result {
 			list = append(list, &data{
 				Key:          post.Key,
-				Nickname:     post.Nickname,
 				MBTI:         post.MBTI.String(),
+				Type:         post.Type.String(),
+				Nickname:     post.Nickname,
 				Title:        post.Title,
 				Content:      post.Content,
-				Type:         post.Type.String(),
+				Images:       post.Images,
 				CreatedAt:    post.CreatedAt,
 				LikeCount:    post.LikeCount,
 				CommentCount: post.CommentCount,
@@ -134,11 +136,12 @@ func GetPosts(c *gin.Context) {
 		for _, post := range result {
 			list = append(list, &data{
 				Key:          post.PostKey,
-				Nickname:     post.Nickname,
 				MBTI:         post.MBTI.String(),
+				Type:         post.Type.String(),
+				Nickname:     post.Nickname,
 				Title:        post.Title,
 				Content:      post.Content,
-				Type:         post.Type.String(),
+				Images:       post.Images,
 				CreatedAt:    post.CreatedAt,
 				LikeCount:    post.LikeCount,
 				CommentCount: post.CommentCount,
@@ -147,7 +150,7 @@ func GetPosts(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusCreated, &model.DataResponse{
+	c.JSON(http.StatusOK, &model.DataResponse{
 		Message: "success",
 		Data:    &list,
 	})
