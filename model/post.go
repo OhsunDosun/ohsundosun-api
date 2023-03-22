@@ -8,11 +8,11 @@ import (
 type Post struct {
 	Key          string        `json:"key"`
 	UserKey      string        `json:"userKey"`
-	Nickname     string        `json:"nickname"`
 	MBTI         enum.MBTI     `json:"mbti"`
+	Type         enum.PostType `json:"type"`
+	Nickname     string        `json:"nickname"`
 	Title        string        `json:"title"`
 	Content      string        `json:"content"`
-	Type         enum.PostType `json:"type"`
 	Images       []string      `json:"images"`
 	CreatedAt    int64         `json:"createdAt"`
 	Active       bool          `json:"active"`

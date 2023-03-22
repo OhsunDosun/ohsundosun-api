@@ -22,6 +22,7 @@ import (
 // @Router /v1/posts [get]
 func GetPosts(c *gin.Context) {
 	type request struct {
+		Sort    *string `form:"sort" enums:"NEW,LIKE" example:"NEW"`
 		Keyword *string `form:"keyword"`
 		LastKey *string `form:"lastKey"`
 		Limit   *int    `form:"limit"`
@@ -30,16 +31,15 @@ func GetPosts(c *gin.Context) {
 	}
 
 	type data struct {
-		Key          string   `json:"key"  binding:"required" example:"test"`
-		MBTI         string   `json:"mbti" binding:"required" example:"INTP"`
-		Type         string   `json:"type"  binding:"required" example:"DAILY"`
-		Nickname     string   `json:"nickname"  binding:"required" example:"test"`
-		Title        string   `json:"title"  binding:"required" example:"test"`
-		Content      string   `json:"content"  binding:"required" example:"test"`
-		Images       []string `json:"images"  binding:"required" example:"test.png,test.png"`
-		CreatedAt    int64    `json:"createdAt"  binding:"required"`
-		LikeCount    int8     `json:"likeCount" binding:"required" example:"0"`
-		CommentCount int8     `json:"commentCount" binding:"required" example:"0"`
+		Key          string `json:"key"  binding:"required" example:"test"`
+		MBTI         string `json:"mbti" binding:"required" example:"INTP"`
+		Type         string `json:"type"  binding:"required" example:"DAILY"`
+		Nickname     string `json:"nickname"  binding:"required" example:"test"`
+		Title        string `json:"title"  binding:"required" example:"test"`
+		Content      string `json:"content"  binding:"required" example:"test"`
+		CreatedAt    int64  `json:"createdAt"  binding:"required"`
+		LikeCount    int8   `json:"likeCount" binding:"required" example:"0"`
+		CommentCount int8   `json:"commentCount" binding:"required" example:"0"`
 	}
 
 	req := &request{}
@@ -79,39 +79,72 @@ func GetPosts(c *gin.Context) {
 		query = base.Query{queryTitleData, queryContentData}
 	}
 
-	var result []*model.Post
-
-	db.BasePost.Fetch(&base.FetchInput{
-		Q:       query,
-		Dest:    &result,
-		Limit:   *req.Limit,
-		LastKey: *req.LastKey,
-	})
-
-	if len(result) == 0 {
-		c.JSON(http.StatusNotFound, &model.DefaultResponse{
-			Message: "not_found_posts",
-		})
-		c.Abort()
-		return
-	}
-
 	list := []*data{}
 
-	for _, post := range result {
-		list = append(list, &data{
-			Key:          post.Key,
-			Nickname:     post.Nickname,
-			MBTI:         post.MBTI.String(),
-			Title:        post.Title,
-			Content:      post.Content,
-			Type:         post.Type.String(),
-			Images:       post.Images,
-			CreatedAt:    post.CreatedAt,
-			LikeCount:    post.LikeCount,
-			CommentCount: post.CommentCount,
-		},
-		)
+	if *req.Sort == "NEW" {
+		var result []*model.Post
+
+		db.BasePost.Fetch(&base.FetchInput{
+			Q:       query,
+			Dest:    &result,
+			Limit:   *req.Limit,
+			LastKey: *req.LastKey,
+		})
+
+		if len(result) == 0 {
+			c.JSON(http.StatusNotFound, &model.DefaultResponse{
+				Message: "not_found_posts",
+			})
+			c.Abort()
+			return
+		}
+
+		for _, post := range result {
+			list = append(list, &data{
+				Key:          post.Key,
+				Nickname:     post.Nickname,
+				MBTI:         post.MBTI.String(),
+				Title:        post.Title,
+				Content:      post.Content,
+				Type:         post.Type.String(),
+				CreatedAt:    post.CreatedAt,
+				LikeCount:    post.LikeCount,
+				CommentCount: post.CommentCount,
+			},
+			)
+		}
+	} else {
+		var result []*model.LikeSortPost
+
+		db.BaseLikeSortPost.Fetch(&base.FetchInput{
+			Q:       query,
+			Dest:    &result,
+			Limit:   *req.Limit,
+			LastKey: *req.LastKey,
+		})
+
+		if len(result) == 0 {
+			c.JSON(http.StatusNotFound, &model.DefaultResponse{
+				Message: "not_found_posts",
+			})
+			c.Abort()
+			return
+		}
+
+		for _, post := range result {
+			list = append(list, &data{
+				Key:          post.PostKey,
+				Nickname:     post.Nickname,
+				MBTI:         post.MBTI.String(),
+				Title:        post.Title,
+				Content:      post.Content,
+				Type:         post.Type.String(),
+				CreatedAt:    post.CreatedAt,
+				LikeCount:    post.LikeCount,
+				CommentCount: post.CommentCount,
+			},
+			)
+		}
 	}
 
 	c.JSON(http.StatusCreated, &model.DataResponse{
