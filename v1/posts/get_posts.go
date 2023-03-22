@@ -22,7 +22,7 @@ import (
 // @Router /v1/posts [get]
 func GetPosts(c *gin.Context) {
 	type request struct {
-		Sort    *string `form:"sort" enums:"NEW,LIKE" example:"NEW"`
+		Sort    string  `form:"sort" enums:"NEW,LIKE" binding:"required" example:"NEW"`
 		Keyword *string `form:"keyword"`
 		LastKey *string `form:"lastKey"`
 		Limit   *int    `form:"limit"`
@@ -82,7 +82,7 @@ func GetPosts(c *gin.Context) {
 
 	list := []*data{}
 
-	if *req.Sort == "NEW" {
+	if req.Sort == "NEW" {
 		var result []*model.Post
 
 		db.BasePost.Fetch(&base.FetchInput{
