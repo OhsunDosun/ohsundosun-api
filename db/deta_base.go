@@ -12,6 +12,7 @@ var Deta *deta.Deta
 var BaseUser *base.Base
 var BaseRating *base.Base
 var BasePost *base.Base
+var BaseLikeSortPost *base.Base
 
 func init() {
 	d, err := deta.New(deta.WithProjectKey(os.Getenv("DETA_COLLECTION_KEY")))
@@ -45,4 +46,12 @@ func init() {
 	}
 
 	BasePost = post
+
+	likeSortPost, err := base.New(d, "Like_Sort_Post")
+	if err != nil {
+		fmt.Println("failed to init new Base instance:", err)
+		return
+	}
+
+	BaseLikeSortPost = likeSortPost
 }

@@ -23,7 +23,7 @@ import (
 // @Success 201 {object} model.DefaultResponse "success"
 // @Success 400 {object} model.DefaultResponse "bad_request"
 // @Success 409 {object} model.DefaultResponse "duplicated_email, duplicated_nickname"
-// @Success 500 {object} model.DefaultResponse "failed_put"
+// @Success 500 {object} model.DefaultResponse "failed_insert"
 // @Router /v1/users [post]
 func SignUp(c *gin.Context) {
 	type request struct {
@@ -81,11 +81,11 @@ func SignUp(c *gin.Context) {
 		Active:       true,
 	}
 
-	_, err = db.BaseUser.Put(u)
+	_, err = db.BaseUser.Insert(u)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, &model.DefaultResponse{
-			Message: "failed_put",
+			Message: "failed_insert",
 		})
 		c.Abort()
 		return

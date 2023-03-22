@@ -20,7 +20,7 @@ import (
 // @Param request body posts.AddPost.request true "body params"
 // @Success 201 {object} model.DefaultResponse "success"
 // @Success 400 {object} model.DefaultResponse "bad_request"
-// @Success 500 {object} model.DefaultResponse "failed_put"
+// @Success 500 {object} model.DefaultResponse "failed_insert"
 // @Router /v1/posts [post]
 func AddPost(c *gin.Context) {
 	user := c.MustGet("user").(model.User)
@@ -64,11 +64,11 @@ func AddPost(c *gin.Context) {
 		Active:    true,
 	}
 
-	_, err = db.BasePost.Put(p)
+	_, err = db.BasePost.Insert(p)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, &model.DefaultResponse{
-			Message: "failed_put",
+			Message: "failed_insert",
 		})
 		c.Abort()
 		return

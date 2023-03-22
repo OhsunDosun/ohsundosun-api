@@ -3,15 +3,20 @@ package main
 import (
 	"net/http"
 	"os"
+	"sort"
+	"strconv"
 
+	"github.com/deta/deta-go/service/base"
 	"github.com/gin-gonic/gin"
 	_ "github.com/joho/godotenv/autoload"
 
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
+	"ohsundosun-api/db"
 	_ "ohsundosun-api/db"
 	docs "ohsundosun-api/docs"
+	"ohsundosun-api/model"
 	v1 "ohsundosun-api/v1"
 )
 
@@ -36,6 +41,91 @@ func setSwagger(r *gin.Engine) {
 	}
 }
 
+func Actions(c *gin.Context) {
+	type event struct {
+		Id      string `json:"id" binding:"required" example:"test"`
+		Trigger string `json:"trigger" binding:"required" example:"schedule"`
+	}
+
+	type request struct {
+		Event event `json:"event" binding:"required"`
+	}
+
+	req := &request{}
+	err := c.ShouldBind(req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, &model.DefaultResponse{
+			Message: "bad_request",
+		})
+		c.Abort()
+		return
+	}
+
+	switch req.Event.Id {
+	case "sort_post":
+		var oldPost []*model.LikeSortPost
+
+		db.BaseLikeSortPost.Fetch(&base.FetchInput{
+			Q:    base.Query{},
+			Dest: &oldPost,
+		})
+
+		for _, post := range oldPost {
+			db.BaseLikeSortPost.Delete(post.Key)
+		}
+
+		var posts []*model.Post
+
+		db.BasePost.Fetch(&base.FetchInput{
+			Q:    base.Query{},
+			Dest: &posts,
+		})
+
+		newPost := []*model.LikeSortPost{}
+
+		for _, post := range posts {
+			newPost = append(newPost, &model.LikeSortPost{
+				PostKey:      post.Key,
+				Nickname:     post.Nickname,
+				MBTI:         post.MBTI,
+				Title:        post.Title,
+				Content:      post.Content,
+				Type:         post.Type,
+				CreatedAt:    post.CreatedAt,
+				LikeCount:    post.LikeCount,
+				CommentCount: post.CommentCount,
+			},
+			)
+		}
+
+		sort.Slice(newPost, func(i, j int) bool {
+			return newPost[i].LikeCount > newPost[j].LikeCount
+		})
+
+		for index, post := range newPost {
+			db.BaseLikeSortPost.Insert(
+				&model.LikeSortPost{
+					Key:          strconv.Itoa(index),
+					PostKey:      post.PostKey,
+					Nickname:     post.Nickname,
+					MBTI:         post.MBTI,
+					Title:        post.Title,
+					Content:      post.Content,
+					Type:         post.Type,
+					CreatedAt:    post.CreatedAt,
+					LikeCount:    post.LikeCount,
+					CommentCount: post.CommentCount,
+				},
+			)
+		}
+
+	}
+
+	c.JSON(http.StatusOK, &model.DefaultResponse{
+		Message: "success",
+	})
+}
+
 // @securityDefinitions.apikey AppAuth
 // @in header
 // @name App-Key
@@ -56,6 +146,8 @@ func main() {
 			"message": "pong",
 		})
 	})
+
+	r.POST("/__space/v0/actions", Actions)
 
 	v1.SetRoute(r)
 

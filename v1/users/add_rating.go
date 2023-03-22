@@ -19,7 +19,7 @@ import (
 // @Param request body users.AddRating.request true "body params"
 // @Success 201 {object} model.DefaultResponse "success"
 // @Success 400 {object} model.DefaultResponse "bad_request"
-// @Success 500 {object} model.DefaultResponse "failed_put"
+// @Success 500 {object} model.DefaultResponse "failed_insert"
 // @Router /v1/users/rating [post]
 func AddRating(c *gin.Context) {
 	user := c.MustGet("user").(model.User)
@@ -60,11 +60,11 @@ func AddRating(c *gin.Context) {
 		CreatedAt: time.Now().Unix(),
 	}
 
-	_, err = db.BaseRating.Put(u)
+	_, err = db.BaseRating.Insert(u)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, &model.DefaultResponse{
-			Message: "failed_put",
+			Message: "failed_insert",
 		})
 		c.Abort()
 		return
