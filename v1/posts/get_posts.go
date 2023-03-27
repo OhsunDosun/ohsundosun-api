@@ -58,7 +58,7 @@ func GetPosts(c *gin.Context) {
 	if req.MBTI != nil && *req.MBTI != "" {
 		queryData["mbti"] = enum.StringToMBTI(strings.ToUpper(*req.MBTI))
 	}
-	if req.Type != nil && *req.MBTI != "" {
+	if req.Type != nil && *req.Type != "" {
 		queryData["type"] = enum.StringToPostType(strings.ToUpper(*req.Type))
 	}
 
