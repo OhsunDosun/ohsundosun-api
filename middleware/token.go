@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"net/http"
-	"ohsundosun-api/db"
+	"ohsundosun-api/deta"
 	"ohsundosun-api/model"
 	"os"
 
@@ -48,7 +48,7 @@ func CheckAccessToken() gin.HandlerFunc {
 
 		var user model.User
 
-		err = db.BaseUser.Get(claims.Key, &user)
+		err = deta.BaseUser.Get(claims.Key, &user)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, &model.DefaultResponse{
 				Message: "unauthorized_access_token",
@@ -101,7 +101,7 @@ func CheckRefreshToken() gin.HandlerFunc {
 
 		var user model.User
 
-		err = db.BaseUser.Get(claims.Key, &user)
+		err = deta.BaseUser.Get(claims.Key, &user)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, &model.DefaultResponse{
 				Message: "unauthorized_refresh_token",

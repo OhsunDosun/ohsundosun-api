@@ -10,7 +10,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/swaggo/files v1.0.0
 	github.com/swaggo/gin-swagger v1.0.0
-	github.com/swaggo/swag v1.8.10
+	github.com/swaggo/swag v1.8.11
 	golang.org/x/crypto v0.7.0
 )
 

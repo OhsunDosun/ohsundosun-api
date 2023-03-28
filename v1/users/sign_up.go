@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"ohsundosun-api/db"
+	"ohsundosun-api/deta"
 	"ohsundosun-api/enum"
 	"ohsundosun-api/model"
 	"ohsundosun-api/util"
@@ -81,7 +81,7 @@ func SignUp(c *gin.Context) {
 		Active:       true,
 	}
 
-	_, err = db.BaseUser.Insert(u)
+	_, err = deta.BaseUser.Insert(u)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, &model.DefaultResponse{

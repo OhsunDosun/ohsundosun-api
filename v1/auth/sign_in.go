@@ -2,7 +2,7 @@ package auth
 
 import (
 	"net/http"
-	"ohsundosun-api/db"
+	"ohsundosun-api/deta"
 	"ohsundosun-api/model"
 	"ohsundosun-api/util"
 	"os"
@@ -52,7 +52,7 @@ func SignIn(c *gin.Context) {
 
 	var result []*model.User
 
-	db.BaseUser.Fetch(&base.FetchInput{
+	deta.BaseUser.Fetch(&base.FetchInput{
 		Q:    query,
 		Dest: &result,
 	})

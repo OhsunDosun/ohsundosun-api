@@ -1,10 +1,13 @@
 package main
 
 import (
+	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/deta/deta-go/service/base"
 	"github.com/gin-gonic/gin"
@@ -13,8 +16,7 @@ import (
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
-	"ohsundosun-api/db"
-	_ "ohsundosun-api/db"
+	deta "ohsundosun-api/deta"
 	docs "ohsundosun-api/docs"
 	"ohsundosun-api/model"
 	v1 "ohsundosun-api/v1"
@@ -65,18 +67,18 @@ func Actions(c *gin.Context) {
 	case "sort_post":
 		var oldPost []*model.LikeSortPost
 
-		db.BaseLikeSortPost.Fetch(&base.FetchInput{
+		deta.BaseLikeSortPost.Fetch(&base.FetchInput{
 			Q:    base.Query{},
 			Dest: &oldPost,
 		})
 
 		for _, post := range oldPost {
-			db.BaseLikeSortPost.Delete(post.Key)
+			deta.BaseLikeSortPost.Delete(post.Key)
 		}
 
 		var posts []*model.Post
 
-		db.BasePost.Fetch(&base.FetchInput{
+		deta.BasePost.Fetch(&base.FetchInput{
 			Q:    base.Query{},
 			Dest: &posts,
 		})
@@ -106,7 +108,7 @@ func Actions(c *gin.Context) {
 		})
 
 		for index, post := range newPost {
-			db.BaseLikeSortPost.Insert(
+			deta.BaseLikeSortPost.Insert(
 				&model.LikeSortPost{
 					Key:          strconv.Itoa(index),
 					PostKey:      post.PostKey,
@@ -151,6 +153,27 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "pong",
 		})
+	})
+
+	r.GET("/image/post/*name", func(c *gin.Context) {
+		name := strings.Replace(c.Param("name"), "/", "", 1)
+
+		file, err := deta.DrivePost.Get(name)
+		if err != nil {
+			fmt.Println("failed to get file with name:", name)
+			return
+		}
+		defer file.Close()
+
+		image, err := io.ReadAll(file)
+
+		if err != nil {
+			fmt.Println("failed to readall file")
+			return
+		}
+		mimeType := http.DetectContentType(image)
+
+		c.Data(http.StatusOK, mimeType, image)
 	})
 
 	r.POST("/__space/v0/actions", Actions)

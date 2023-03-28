@@ -2,7 +2,7 @@ package users
 
 import (
 	"net/http"
-	"ohsundosun-api/db"
+	"ohsundosun-api/deta"
 	"ohsundosun-api/model"
 
 	"github.com/deta/deta-go/service/base"
@@ -35,7 +35,7 @@ func UpdateNickname(c *gin.Context) {
 		return
 	}
 
-	err = db.BaseUser.Update(user.Key, base.Updates{
+	err = deta.BaseUser.Update(user.Key, base.Updates{
 		"nickname": req.Nickname,
 	})
 

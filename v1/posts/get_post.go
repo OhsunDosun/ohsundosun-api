@@ -2,7 +2,7 @@ package posts
 
 import (
 	"net/http"
-	"ohsundosun-api/db"
+	"ohsundosun-api/deta"
 	"ohsundosun-api/model"
 
 	"github.com/gin-gonic/gin"
@@ -34,7 +34,7 @@ func GetPost(c *gin.Context) {
 
 	var post model.Post
 
-	err := db.BasePost.Get(postId, &post)
+	err := deta.BasePost.Get(postId, &post)
 	if err != nil {
 		c.JSON(http.StatusNotFound, &model.DefaultResponse{
 			Message: "not_found_post",

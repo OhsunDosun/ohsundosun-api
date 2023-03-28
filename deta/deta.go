@@ -1,4 +1,4 @@
-package db
+package deta
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 
 	"github.com/deta/deta-go/deta"
 	"github.com/deta/deta-go/service/base"
+	"github.com/deta/deta-go/service/drive"
 )
 
 var Deta *deta.Deta
@@ -13,6 +14,8 @@ var BaseUser *base.Base
 var BaseRating *base.Base
 var BasePost *base.Base
 var BaseLikeSortPost *base.Base
+
+var DrivePost *drive.Drive
 
 func init() {
 	d, err := deta.New(deta.WithProjectKey(os.Getenv("DETA_COLLECTION_KEY")))
@@ -23,35 +26,43 @@ func init() {
 
 	Deta = d
 
-	user, err := base.New(d, "User")
+	userBase, err := base.New(Deta, "User")
 	if err != nil {
 		fmt.Println("failed to init new Base instance:", err)
 		return
 	}
 
-	BaseUser = user
+	BaseUser = userBase
 
-	rating, err := base.New(d, "Rating")
+	ratingBase, err := base.New(Deta, "Rating")
 	if err != nil {
 		fmt.Println("failed to init new Base instance:", err)
 		return
 	}
 
-	BaseRating = rating
+	BaseRating = ratingBase
 
-	post, err := base.New(d, "Post")
+	postBase, err := base.New(Deta, "Post")
 	if err != nil {
 		fmt.Println("failed to init new Base instance:", err)
 		return
 	}
 
-	BasePost = post
+	BasePost = postBase
 
-	likeSortPost, err := base.New(d, "Like_Sort_Post")
+	likeSortPostBase, err := base.New(Deta, "Like_Sort_Post")
 	if err != nil {
 		fmt.Println("failed to init new Base instance:", err)
 		return
 	}
 
-	BaseLikeSortPost = likeSortPost
+	BaseLikeSortPost = likeSortPostBase
+
+	postDrive, err := drive.New(Deta, "Post")
+	if err != nil {
+		fmt.Println("failed to init new Drive instance:", err)
+		return
+	}
+
+	DrivePost = postDrive
 }

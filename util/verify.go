@@ -1,7 +1,7 @@
 package util
 
 import (
-	"ohsundosun-api/db"
+	"ohsundosun-api/deta"
 	"ohsundosun-api/model"
 
 	"github.com/deta/deta-go/service/base"
@@ -14,7 +14,7 @@ func VerifyEmail(email *string) bool {
 
 	var result []*model.User
 
-	db.BaseUser.Fetch(&base.FetchInput{
+	deta.BaseUser.Fetch(&base.FetchInput{
 		Q:    query,
 		Dest: &result,
 	})
@@ -29,7 +29,7 @@ func VerifyNickname(nickname *string) bool {
 
 	var result []*model.User
 
-	db.BaseUser.Fetch(&base.FetchInput{
+	deta.BaseUser.Fetch(&base.FetchInput{
 		Q:    query,
 		Dest: &result,
 	})

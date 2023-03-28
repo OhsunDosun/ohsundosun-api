@@ -2,7 +2,7 @@ package posts
 
 import (
 	"net/http"
-	"ohsundosun-api/db"
+	"ohsundosun-api/deta"
 	"ohsundosun-api/enum"
 	"ohsundosun-api/model"
 	"strings"
@@ -85,7 +85,7 @@ func GetPosts(c *gin.Context) {
 	if req.Sort == "NEW" {
 		var result []*model.Post
 
-		db.BasePost.Fetch(&base.FetchInput{
+		deta.BasePost.Fetch(&base.FetchInput{
 			Q:       query,
 			Dest:    &result,
 			Limit:   *req.Limit,
@@ -118,7 +118,7 @@ func GetPosts(c *gin.Context) {
 	} else {
 		var result []*model.LikeSortPost
 
-		db.BaseLikeSortPost.Fetch(&base.FetchInput{
+		deta.BaseLikeSortPost.Fetch(&base.FetchInput{
 			Q:       query,
 			Dest:    &result,
 			Limit:   *req.Limit,

@@ -2,7 +2,7 @@ package users
 
 import (
 	"net/http"
-	"ohsundosun-api/db"
+	"ohsundosun-api/deta"
 	"ohsundosun-api/enum"
 	"ohsundosun-api/model"
 	"strings"
@@ -46,7 +46,7 @@ func UpdateMBTI(c *gin.Context) {
 		return
 	}
 
-	err = db.BaseUser.Update(user.Key, base.Updates{
+	err = deta.BaseUser.Update(user.Key, base.Updates{
 		"mbti": mbti,
 	})
 

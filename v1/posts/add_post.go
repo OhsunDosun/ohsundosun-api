@@ -1,14 +1,16 @@
 package posts
 
 import (
+	"mime/multipart"
 	"net/http"
-	"ohsundosun-api/db"
+	"ohsundosun-api/deta"
 	"ohsundosun-api/enum"
 	"ohsundosun-api/model"
 	"ohsundosun-api/util"
 	"strings"
 	"time"
 
+	"github.com/deta/deta-go/service/drive"
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,7 +19,7 @@ import (
 // @Summary 게시물 추가
 // @Description 게시물 추가
 // @Security AppAuth
-// @Param request body posts.AddPost.request true "body params"
+// @Param request formData posts.AddPost.request true "body params"
 // @Success 201 {object} model.DefaultResponse "success"
 // @Success 400 {object} model.DefaultResponse "bad_request"
 // @Success 500 {object} model.DefaultResponse "failed_insert"
@@ -26,10 +28,10 @@ func AddPost(c *gin.Context) {
 	user := c.MustGet("user").(model.User)
 
 	type request struct {
-		Title   string   `json:"title" binding:"required,max=30" example:"test"`
-		Content string   `json:"content" binding:"required,max=6000" example:"test"`
-		Type    string   `json:"type" enums:"DAILY,LOVE,FRIEND" binding:"required" example:"DAILY"`
-		Images  []string `json:"images" binding:"required" example:"test.png,test.png"`
+		Title   string                 `form:"title" binding:"required,max=30" example:"test"`
+		Content string                 `form:"content" binding:"required,max=6000" example:"test"`
+		Type    string                 `form:"type" enums:"DAILY,LOVE,FRIEND" binding:"required" example:"DAILY"`
+		Images  []multipart.FileHeader `form:"images" swaggerignore:"true"`
 	}
 
 	req := &request{}
@@ -51,20 +53,43 @@ func AddPost(c *gin.Context) {
 		return
 	}
 
+	postKey := util.NewULID().String()
+
+	images := []string{}
+
+	for _, image := range req.Images {
+		file, err := image.Open()
+
+		if err != nil {
+			break
+		}
+
+		name, err := deta.DrivePost.Put(&drive.PutInput{
+			Name: postKey + "/" + image.Filename,
+			Body: file,
+		})
+
+		if err != nil {
+			break
+		}
+
+		images = append(images, name)
+	}
+
 	p := &model.Post{
-		Key:       util.NewULID().String(),
+		Key:       postKey,
 		UserKey:   user.Key,
 		Nickname:  user.Nickname,
 		MBTI:      user.MBTI,
 		Title:     req.Title,
 		Content:   req.Content,
 		Type:      postType,
-		Images:    req.Images,
+		Images:    images,
 		CreatedAt: time.Now().Unix(),
 		Active:    true,
 	}
 
-	_, err = db.BasePost.Insert(p)
+	_, err = deta.BasePost.Insert(p)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, &model.DefaultResponse{

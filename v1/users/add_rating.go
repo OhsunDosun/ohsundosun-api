@@ -3,7 +3,7 @@ package users
 import (
 	"database/sql"
 	"net/http"
-	"ohsundosun-api/db"
+	"ohsundosun-api/deta"
 	"ohsundosun-api/model"
 	"ohsundosun-api/util"
 	"time"
@@ -60,7 +60,7 @@ func AddRating(c *gin.Context) {
 		CreatedAt: time.Now().Unix(),
 	}
 
-	_, err = db.BaseRating.Insert(u)
+	_, err = deta.BaseRating.Insert(u)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, &model.DefaultResponse{
