@@ -7,6 +7,7 @@ import (
 	"ohsundosun-api/enum"
 	"ohsundosun-api/model"
 	"ohsundosun-api/util"
+	"os"
 	"strings"
 	"time"
 
@@ -73,7 +74,7 @@ func AddPost(c *gin.Context) {
 			break
 		}
 
-		images = append(images, name)
+		images = append(images, os.Getenv("APP_HOST")+"/image/post/"+name)
 	}
 
 	p := &model.Post{

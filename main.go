@@ -32,8 +32,11 @@ func setEnv() {
 
 func setSwagger(r *gin.Engine) {
 	if os.Getenv("APP_MODE") != "prod" {
+		host := strings.Replace(os.Getenv("APP_HOST"), "https://", "", 1)
+		host = strings.Replace(host, "http://", "", 1)
+
 		docs.SwaggerInfo.Version = "0.0.1"
-		docs.SwaggerInfo.Host = os.Getenv("APP_HOST")
+		docs.SwaggerInfo.Host = host
 		docs.SwaggerInfo.BasePath = "/"
 		docs.SwaggerInfo.Title = "오순도순 API"
 
