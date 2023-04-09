@@ -23,7 +23,7 @@ jobs:
 
       - if: github.ref == 'refs/heads/main'
         name: Deta Space Deployment Github Action
-        uses: neobrains/space-deployment-github-action@v0.3
+        uses: neobrains/space-deployment-github-action@v0.5
         with:
           access_token: ${{ secrets.SPACE_ACCESS_TOKEN }}
           project_id: ${{ secrets.SPACE_PROJECT_ID_PROD }}
@@ -35,7 +35,7 @@ jobs:
 
       - if: github.ref == 'refs/heads/dev'
         name: Deta Space Deployment Github Action
-        uses: neobrains/space-deployment-github-action@v0.3
+        uses: neobrains/space-deployment-github-action@v0.5
         with:
           access_token: ${{ secrets.SPACE_ACCESS_TOKEN }}
           project_id: ${{ secrets.SPACE_PROJECT_ID_DEV }}
