@@ -26,9 +26,10 @@ import (
 // @Router /v1/auth/sign [post]
 func SignIn(c *gin.Context) {
 	type request struct {
-		Type     string `json:"type" enums:"DEFAULT, NEW_PASSWORD" binding:"required" example:"DEFAULT"`
-		Email    string `json:"email" swaggertype:"string" format:"email" binding:"required,email" example:"test@test.com"`
-		Password string `json:"password" binding:"required,alphanum,min=8,max=16" example:"test1234"`
+		Type     string  `json:"type" enums:"DEFAULT, NEW_PASSWORD" binding:"required" example:"DEFAULT"`
+		Email    string  `json:"email" swaggertype:"string" format:"email" binding:"required,email" example:"test@test.com"`
+		Password string  `json:"password" binding:"required,alphanum,min=8,max=16" example:"test1234"`
+		FCM      *string `json:"fcm" example:"test"`
 	}
 
 	type data struct {
@@ -110,6 +111,12 @@ func SignIn(c *gin.Context) {
 	isSecure := true
 	if os.Getenv("APP_MODE") == "local" {
 		isSecure = false
+	}
+
+	if req.FCM != nil {
+		deta.BaseUser.Update(user.Key, base.Updates{
+			"fcm": util.DeleteDuplicateItem(append(user.FCM, *req.FCM)),
+		})
 	}
 
 	accessToken := util.GetAccessToken(user)

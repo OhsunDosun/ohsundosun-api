@@ -79,6 +79,7 @@ func SignUp(c *gin.Context) {
 		CreatedAt:    time.Now().Unix(),
 		Notification: true,
 		Active:       true,
+		FCM:          []string{},
 	}
 
 	_, err = deta.BaseUser.Insert(u)

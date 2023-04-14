@@ -14,6 +14,7 @@ type User struct {
 	CreatedAt    int64     `json:"createdAt"`
 	Notification bool      `json:"notification"`
 	Active       bool      `json:"active"`
+	FCM          []string  `json:"fcm"`
 
 	InActiveAt           sql.NullInt64  `json:"inActiveAt"`
 	NewPassword          sql.NullString `json:"newPassword"`
