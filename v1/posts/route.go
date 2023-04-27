@@ -21,5 +21,6 @@ func SetRoute(rg *gin.RouterGroup) {
 
 		auth.POST(":postId/comments", middleware.CheckAccessToken(), AddComment)
 		auth.POST(":postId/comments/:commentId/report", middleware.CheckAccessToken(), ReportComment)
+		auth.POST(":postId/comments/:commentId/reply", middleware.CheckAccessToken(), AddCommentReply)
 	}
 }

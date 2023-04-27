@@ -13,6 +13,7 @@ var Deta *deta.Deta
 var BaseUser *base.Base
 var BaseRating *base.Base
 var BasePost *base.Base
+var BaseComment *base.Base
 var BaseLikeSortPost *base.Base
 
 var DrivePost *drive.Drive
@@ -49,6 +50,14 @@ func init() {
 	}
 
 	BasePost = postBase
+
+	commentBase, err := base.New(Deta, "Comment")
+	if err != nil {
+		fmt.Println("failed to init new Base instance:", err)
+		return
+	}
+
+	BaseComment = commentBase
 
 	likeSortPostBase, err := base.New(Deta, "Like_Sort_Post")
 	if err != nil {
