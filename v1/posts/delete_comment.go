@@ -12,32 +12,33 @@ import (
 )
 
 // DeletePost godoc
-// @Tags Posts
-// @Summary 게시물 삭제
-// @Description 게시물 삭제
+// @Tags Posts-Comments
+// @Summary 게시물 댓글 삭제
+// @Description 게시물 댓글 삭제
 // @Security AppAuth
 // @Success 200 {object} model.DefaultResponse "success"
 // @Success 403 {object} model.DefaultResponse "forbidden"
-// @Success 404 {object} model.DefaultResponse "not_found_post"
+// @Success 404 {object} model.DefaultResponse "not_found_comment"
 // @Success 500 {object} model.DefaultResponse "failed_update"
-// @Router /v1/posts/{postId} [delete]
-func DeletePost(c *gin.Context) {
+// @Router /v1/posts/{postId}/comments/{commentId} [delete]
+func DeleteComment(c *gin.Context) {
 	postId := c.Param("postId")
+	commentId := c.Param("commentId")
 
 	user := c.MustGet("user").(model.User)
 
-	var post model.Post
+	var comment model.Comment
 
-	err := deta.BasePost.Get(postId, &post)
-	if err != nil || post.Key != postId {
+	err := deta.BaseComment.Get(commentId, &comment)
+	if err != nil || comment.PostKey != postId {
 		c.JSON(http.StatusNotFound, &model.DefaultResponse{
-			Message: "not_found_post",
+			Message: "not_found_comment",
 		})
 		c.Abort()
 		return
 	}
 
-	if post.UserKey != user.Key {
+	if comment.UserKey != user.Key {
 		c.JSON(http.StatusForbidden, &model.DefaultResponse{
 			Message: "forbidden",
 		})
@@ -45,7 +46,7 @@ func DeletePost(c *gin.Context) {
 		return
 	}
 
-	updatesPost := base.Updates{
+	updatesComment := base.Updates{
 		"active": false,
 		"inActiveAt": sql.NullInt64{
 			Int64: time.Now().Unix(),
@@ -53,7 +54,7 @@ func DeletePost(c *gin.Context) {
 		},
 	}
 
-	err = deta.BasePost.Update(postId, updatesPost)
+	err = deta.BaseComment.Update(commentId, updatesComment)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, &model.DefaultResponse{

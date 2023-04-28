@@ -13,8 +13,8 @@ import (
 
 // AddCommentReply godoc
 // @Tags Posts-Comments
-// @Summary 게시물 댓글 답글 추가
-// @Description 게시물 댓글 답글 추가
+// @Summary 게시물 답글 추가
+// @Description 게시물 답글 추가
 // @Security AppAuth
 // @Param request body posts.AddCommentReply.request true "body params"
 // @Success 201 {object} model.DefaultResponse "success"
@@ -23,6 +23,7 @@ import (
 // @Success 500 {object} model.DefaultResponse "failed_update"
 // @Router /v1/posts/{postId}/comments/{commentId}/reply [post]
 func AddCommentReply(c *gin.Context) {
+	postId := c.Param("postId")
 	commentId := c.Param("commentId")
 
 	user := c.MustGet("user").(model.User)
@@ -44,7 +45,7 @@ func AddCommentReply(c *gin.Context) {
 	var comment model.Comment
 
 	err = deta.BaseComment.Get(commentId, &comment)
-	if err != nil {
+	if err != nil || comment.PostKey != postId {
 		c.JSON(http.StatusNotFound, &model.DefaultResponse{
 			Message: "not_found_comment",
 		})
