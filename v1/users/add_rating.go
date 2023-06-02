@@ -25,8 +25,8 @@ func AddRating(c *gin.Context) {
 	user := c.MustGet("user").(model.User)
 
 	type request struct {
-		Rating   *float32 `json:"rating" binding:"required" example:"0"`
-		Feedback *string  `json:"feedback" example:"test"`
+		Rating   float32 `json:"rating" binding:"required" example:"0"`
+		Feedback *string `json:"feedback" example:"test"`
 	}
 
 	req := &request{}
@@ -56,6 +56,7 @@ func AddRating(c *gin.Context) {
 	u := &model.Rating{
 		Key:       util.NewULID().String(),
 		UserKey:   user.Key,
+		Rating:    req.Rating,
 		Feedback:  feedback,
 		CreatedAt: time.Now().Unix(),
 	}
