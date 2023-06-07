@@ -1,17 +1,14 @@
 package posts
 
 import (
-	"mime/multipart"
 	"net/http"
 	"ohsundosun-api/deta"
 	"ohsundosun-api/enum"
 	"ohsundosun-api/model"
 	"ohsundosun-api/util"
-	"os"
 	"strings"
 	"time"
 
-	"github.com/deta/deta-go/service/drive"
 	"github.com/gin-gonic/gin"
 )
 
@@ -29,10 +26,10 @@ func AddPost(c *gin.Context) {
 	user := c.MustGet("user").(model.User)
 
 	type request struct {
-		Title   string                 `form:"title" binding:"required,max=30" example:"test"`
-		Content string                 `form:"content" binding:"required,max=6000" example:"test"`
-		Type    string                 `form:"type" enums:"DAILY,LOVE,FRIEND" binding:"required" example:"DAILY"`
-		Images  []multipart.FileHeader `form:"images" swaggerignore:"true"`
+		Title   string   `json:"title" binding:"required,max=30"  example:"test"`
+		Content string   `json:"content" binding:"required,max=6000" example:"test"`
+		Type    string   `json:"type" enums:"DAILY,LOVE,FRIEND" binding:"required" example:"DAILY"`
+		Images  []string `json:"images" binding:"required" exmaple:"[]"`
 	}
 
 	req := &request{}
@@ -54,38 +51,15 @@ func AddPost(c *gin.Context) {
 		return
 	}
 
-	postKey := util.NewULID().String()
-
-	images := []string{}
-
-	for _, image := range req.Images {
-		file, err := image.Open()
-
-		if err != nil {
-			break
-		}
-
-		name, err := deta.DrivePost.Put(&drive.PutInput{
-			Name: postKey + "/" + image.Filename,
-			Body: file,
-		})
-
-		if err != nil {
-			break
-		}
-
-		images = append(images, os.Getenv("APP_HOST")+"/image/post/"+name)
-	}
-
 	p := &model.Post{
-		Key:       postKey,
+		Key:       util.NewULID().String(),
 		UserKey:   user.Key,
 		Nickname:  user.Nickname,
 		MBTI:      user.MBTI,
 		Title:     req.Title,
 		Content:   req.Content,
 		Type:      postType,
-		Images:    images,
+		Images:    req.Images,
 		CreatedAt: time.Now().Unix(),
 		Active:    true,
 	}
