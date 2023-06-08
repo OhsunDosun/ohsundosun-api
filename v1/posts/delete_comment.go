@@ -64,6 +64,12 @@ func DeleteComment(c *gin.Context) {
 		return
 	}
 
+	updatesPost := base.Updates{
+		"commentCount": deta.BasePost.Util.Increment(-1 + -len(comment.Replys)),
+	}
+
+	deta.BasePost.Update(postId, updatesPost)
+
 	c.JSON(http.StatusOK, &model.DefaultResponse{
 		Message: "success",
 	})

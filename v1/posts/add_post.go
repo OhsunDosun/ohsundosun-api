@@ -26,7 +26,7 @@ func AddPost(c *gin.Context) {
 	user := c.MustGet("user").(model.User)
 
 	type request struct {
-		Title   string   `json:"title" binding:"required,max=30"  example:"test"`
+		Title   string   `json:"title" binding:"required,max=30" example:"test"`
 		Content string   `json:"content" binding:"required,max=6000" example:"test"`
 		Type    string   `json:"type" enums:"DAILY,LOVE,FRIEND" binding:"required" example:"DAILY"`
 		Images  []string `json:"images" binding:"required" exmaple:"[]"`

@@ -77,6 +77,12 @@ func AddCommentReply(c *gin.Context) {
 		return
 	}
 
+	updatesPost := base.Updates{
+		"commentCount": deta.BasePost.Util.Increment(1),
+	}
+
+	deta.BasePost.Update(postId, updatesPost)
+
 	c.JSON(http.StatusCreated, &model.DefaultResponse{
 		Message: "success",
 	})

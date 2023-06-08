@@ -7,6 +7,7 @@ import (
 	"ohsundosun-api/util"
 	"time"
 
+	"github.com/deta/deta-go/service/base"
 	"github.com/gin-gonic/gin"
 )
 
@@ -60,6 +61,12 @@ func AddComment(c *gin.Context) {
 		c.Abort()
 		return
 	}
+
+	updatesPost := base.Updates{
+		"commentCount": deta.BasePost.Util.Increment(1),
+	}
+
+	deta.BasePost.Update(postId, updatesPost)
 
 	c.JSON(http.StatusCreated, &model.DefaultResponse{
 		Message: "success",

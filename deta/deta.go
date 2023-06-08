@@ -16,6 +16,7 @@ var BaseRating *base.Base
 var BaseReport *base.Base
 
 var BasePost *base.Base
+var BasePostLike *base.Base
 var BaseLikeSortPost *base.Base
 
 var BaseComment *base.Base
@@ -54,6 +55,14 @@ func init() {
 	}
 
 	BasePost = postBase
+
+	postLikeBase, err := base.New(Deta, "PostLike")
+	if err != nil {
+		fmt.Println("failed to init new Base instance:", err)
+		return
+	}
+
+	BasePostLike = postLikeBase
 
 	commentBase, err := base.New(Deta, "Comment")
 	if err != nil {
