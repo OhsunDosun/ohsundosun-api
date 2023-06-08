@@ -32,6 +32,7 @@ func GetPosts(c *gin.Context) {
 
 	type data struct {
 		Key          string   `json:"key"  binding:"required" example:"test"`
+		UserKey      string   `json:"userKey"  binding:"required" example:"test"`
 		MBTI         string   `json:"mbti" binding:"required" example:"INTP"`
 		Type         string   `json:"type"  binding:"required" example:"DAILY"`
 		Nickname     string   `json:"nickname"  binding:"required" example:"test"`
@@ -103,6 +104,7 @@ func GetPosts(c *gin.Context) {
 		for _, post := range result {
 			list = append(list, &data{
 				Key:          post.Key,
+				UserKey:      post.UserKey,
 				MBTI:         post.MBTI.String(),
 				Type:         post.Type.String(),
 				Nickname:     post.Nickname,
@@ -136,6 +138,7 @@ func GetPosts(c *gin.Context) {
 		for _, post := range result {
 			list = append(list, &data{
 				Key:          post.PostKey,
+				UserKey:      post.UserKey,
 				MBTI:         post.MBTI.String(),
 				Type:         post.Type.String(),
 				Nickname:     post.Nickname,

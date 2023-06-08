@@ -21,6 +21,7 @@ func GetPost(c *gin.Context) {
 
 	type data struct {
 		Key          string   `json:"key"  binding:"required" example:"test"`
+		UserKey      string   `json:"userKey"  binding:"required" example:"test"`
 		MBTI         string   `json:"mbti" binding:"required" example:"INTP"`
 		Type         string   `json:"type"  binding:"required" example:"DAILY"`
 		Nickname     string   `json:"nickname"  binding:"required" example:"test"`
@@ -47,6 +48,7 @@ func GetPost(c *gin.Context) {
 		Message: "success",
 		Data: &data{
 			Key:          post.Key,
+			UserKey:      post.UserKey,
 			Nickname:     post.Nickname,
 			MBTI:         post.MBTI.String(),
 			Title:        post.Title,
