@@ -18,6 +18,7 @@ func GetUser(c *gin.Context) {
 	user := c.MustGet("user").(model.User)
 
 	type data struct {
+		Key          string `json:"key" binding:"required" example:"test"`
 		Nickname     string `json:"nickname" binding:"required" example:"test"`
 		MBTI         string `json:"mbti" binding:"required" example:"INTP"`
 		Notification bool   `json:"notification" binding:"required" example:"true"`
@@ -26,6 +27,7 @@ func GetUser(c *gin.Context) {
 	c.JSON(http.StatusOK, &model.DataResponse{
 		Message: "success",
 		Data: &data{
+			Key:          user.Key,
 			Nickname:     user.Nickname,
 			MBTI:         user.MBTI.String(),
 			Notification: user.Notification,
