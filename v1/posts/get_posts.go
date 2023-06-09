@@ -21,6 +21,8 @@ import (
 // @Success 404 {object} model.DefaultResponse "not_found_posts"
 // @Router /v1/posts [get]
 func GetPosts(c *gin.Context) {
+	user := c.MustGet("user").(model.User)
+
 	type request struct {
 		Sort    string  `form:"sort" enums:"NEW,LIKE" binding:"required" example:"NEW"`
 		Keyword *string `form:"keyword"`
@@ -42,6 +44,7 @@ func GetPosts(c *gin.Context) {
 		CreatedAt    int64    `json:"createdAt"  binding:"required"`
 		LikeCount    int8     `json:"likeCount" binding:"required" example:"0"`
 		CommentCount int8     `json:"commentCount" binding:"required" example:"0"`
+		IsLike       bool     `json:"isLike" binding:"required"`
 	}
 
 	req := &request{}
@@ -102,6 +105,19 @@ func GetPosts(c *gin.Context) {
 		}
 
 		for _, post := range result {
+			queryData := make(map[string]interface{})
+			queryData["postKey"] = post.Key
+			queryData["userKey"] = user.Key
+
+			query := base.Query{queryData}
+
+			var result []*model.PostLike
+
+			deta.BasePostLike.Fetch(&base.FetchInput{
+				Q:    query,
+				Dest: &result,
+			})
+
 			list = append(list, &data{
 				Key:          post.Key,
 				UserKey:      post.UserKey,
@@ -114,6 +130,7 @@ func GetPosts(c *gin.Context) {
 				CreatedAt:    post.CreatedAt,
 				LikeCount:    post.LikeCount,
 				CommentCount: post.CommentCount,
+				IsLike:       len(result) > 0,
 			},
 			)
 		}
@@ -136,6 +153,19 @@ func GetPosts(c *gin.Context) {
 		}
 
 		for _, post := range result {
+			queryData := make(map[string]interface{})
+			queryData["postKey"] = post.Key
+			queryData["userKey"] = user.Key
+
+			query := base.Query{queryData}
+
+			var result []*model.PostLike
+
+			deta.BasePostLike.Fetch(&base.FetchInput{
+				Q:    query,
+				Dest: &result,
+			})
+
 			list = append(list, &data{
 				Key:          post.PostKey,
 				UserKey:      post.UserKey,
@@ -148,6 +178,7 @@ func GetPosts(c *gin.Context) {
 				CreatedAt:    post.CreatedAt,
 				LikeCount:    post.LikeCount,
 				CommentCount: post.CommentCount,
+				IsLike:       len(result) > 0,
 			},
 			)
 		}

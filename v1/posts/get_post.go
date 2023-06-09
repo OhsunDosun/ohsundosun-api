@@ -5,6 +5,7 @@ import (
 	"ohsundosun-api/deta"
 	"ohsundosun-api/model"
 
+	"github.com/deta/deta-go/service/base"
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,6 +20,8 @@ import (
 func GetPost(c *gin.Context) {
 	postId := c.Param("postId")
 
+	user := c.MustGet("user").(model.User)
+
 	type data struct {
 		Key          string   `json:"key"  binding:"required" example:"test"`
 		UserKey      string   `json:"userKey"  binding:"required" example:"test"`
@@ -31,6 +34,7 @@ func GetPost(c *gin.Context) {
 		CreatedAt    int64    `json:"createdAt"  binding:"required"`
 		LikeCount    int8     `json:"likeCount" binding:"required" example:"0"`
 		CommentCount int8     `json:"commentCount" binding:"required" example:"0"`
+		IsLike       bool     `json:"isLike" binding:"required"`
 	}
 
 	var post model.Post
@@ -43,6 +47,19 @@ func GetPost(c *gin.Context) {
 		c.Abort()
 		return
 	}
+
+	queryData := make(map[string]interface{})
+	queryData["postKey"] = post.Key
+	queryData["userKey"] = user.Key
+
+	query := base.Query{queryData}
+
+	var result []*model.PostLike
+
+	deta.BasePostLike.Fetch(&base.FetchInput{
+		Q:    query,
+		Dest: &result,
+	})
 
 	c.JSON(http.StatusOK, &model.DataResponse{
 		Message: "success",
@@ -58,6 +75,7 @@ func GetPost(c *gin.Context) {
 			CreatedAt:    post.CreatedAt,
 			LikeCount:    post.LikeCount,
 			CommentCount: post.CommentCount,
+			IsLike:       len(result) > 0,
 		},
 	})
 }
