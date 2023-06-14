@@ -1,38 +1,22 @@
 package util
 
 import (
-	"ohsundosun-api/deta"
+	"ohsundosun-api/db"
 	"ohsundosun-api/model"
-
-	"github.com/deta/deta-go/service/base"
 )
 
 func VerifyEmail(email *string) bool {
-	query := base.Query{
-		{"email": email},
-	}
+	var user *model.User
 
-	var result []*model.User
+	result := db.DB.Model(&model.User{}).First(&user, "email = ?", email)
 
-	deta.BaseUser.Fetch(&base.FetchInput{
-		Q:    query,
-		Dest: &result,
-	})
-
-	return len(result) == 0
+	return result.RowsAffected == 0
 }
 
 func VerifyNickname(nickname *string) bool {
-	query := base.Query{
-		{"nickname": nickname},
-	}
+	var user *model.User
 
-	var result []*model.User
+	result := db.DB.Model(&model.User{}).First(&user, "nickname = ?", nickname)
 
-	deta.BaseUser.Fetch(&base.FetchInput{
-		Q:    query,
-		Dest: &result,
-	})
-
-	return len(result) == 0
+	return result.RowsAffected == 0
 }

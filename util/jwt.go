@@ -10,7 +10,7 @@ import (
 
 func GetAccessToken(user *model.User) string {
 	accessClaims := model.TokenClaims{
-		Key: user.Key,
+		UUID: user.UUID.String(),
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 30)),
 		},
@@ -22,7 +22,7 @@ func GetAccessToken(user *model.User) string {
 
 func GetRefreshToken(user *model.User) string {
 	refreshClaims := model.TokenClaims{
-		Key: user.Key,
+		UUID: user.UUID.String(),
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().AddDate(0, 0, 14)),
 		},

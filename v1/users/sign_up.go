@@ -2,10 +2,8 @@ package users
 
 import (
 	"net/http"
-	"strings"
-	"time"
 
-	"ohsundosun-api/deta"
+	"ohsundosun-api/db"
 	"ohsundosun-api/enum"
 	"ohsundosun-api/model"
 	"ohsundosun-api/util"
@@ -43,15 +41,6 @@ func SignUp(c *gin.Context) {
 		return
 	}
 
-	mbti := enum.StringToMBTI(strings.ToUpper(req.MBTI))
-	if mbti == 0 {
-		c.JSON(http.StatusBadRequest, &model.DefaultResponse{
-			Message: "bad_request",
-		})
-		c.Abort()
-		return
-	}
-
 	if !util.VerifyEmail(&req.Email) {
 		c.JSON(http.StatusConflict, &model.DefaultResponse{
 			Message: "duplicated_email",
@@ -70,21 +59,14 @@ func SignUp(c *gin.Context) {
 
 	hashPassword, _ := bcrypt.GenerateFromPassword([]byte(req.Password), 10)
 
-	u := &model.User{
-		Key:          util.NewULID().String(),
-		Email:        req.Email,
-		Password:     string(hashPassword),
-		Nickname:     req.Nickname,
-		MBTI:         mbti,
-		CreatedAt:    time.Now().Unix(),
-		Notification: true,
-		Active:       true,
-		FCM:          []string{},
+	user := model.User{
+		Email:    req.Email,
+		Password: string(hashPassword),
+		Nickname: req.Nickname,
+		MBTI:     enum.MBTI(req.MBTI),
 	}
 
-	_, err = deta.BaseUser.Insert(u)
-
-	if err != nil {
+	if err := db.DB.Create(&user).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, &model.DefaultResponse{
 			Message: "failed_insert",
 		})

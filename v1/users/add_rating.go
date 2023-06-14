@@ -1,12 +1,9 @@
 package users
 
 import (
-	"database/sql"
 	"net/http"
-	"ohsundosun-api/deta"
+	"ohsundosun-api/db"
 	"ohsundosun-api/model"
-	"ohsundosun-api/util"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -39,29 +36,19 @@ func AddRating(c *gin.Context) {
 		return
 	}
 
-	var feedback sql.NullString
-
-	if req.Feedback != nil {
-		feedback = sql.NullString{
-			String: *req.Feedback,
-			Valid:  true,
-		}
-	} else {
-		feedback = sql.NullString{
-			String: "",
-			Valid:  false,
-		}
+	rating := model.UserRating{
+		UserID:   user.ID,
+		Rating:   req.Rating,
+		Feedback: req.Feedback,
 	}
 
-	u := &model.Rating{
-		Key:       util.NewULID().String(),
-		UserKey:   user.Key,
-		Rating:    req.Rating,
-		Feedback:  feedback,
-		CreatedAt: time.Now().Unix(),
+	if err := db.DB.Create(&rating).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, &model.DefaultResponse{
+			Message: "failed_insert",
+		})
+		c.Abort()
+		return
 	}
-
-	_, err = deta.BaseRating.Insert(u)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, &model.DefaultResponse{

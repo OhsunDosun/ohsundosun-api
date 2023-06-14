@@ -1,29 +1,20 @@
 package enum
 
-type PostType int
+import "database/sql/driver"
+
+type PostType string
 
 const (
-	DAILY PostType = 1 + iota
-	LOVE
-	FRIEND
+	DAILY  PostType = "DAILY"
+	LOVE   PostType = "LOVE"
+	FRIEND PostType = "FRIEND"
 )
 
-var postTypeList = []string{
-	"DAILY",
-	"LOVE",
-	"FRIEND",
+func (postType *PostType) Scan(value interface{}) error {
+	*postType = PostType(value.([]byte))
+	return nil
 }
 
-func (m PostType) String() string { return postTypeList[(m - 1)] }
-
-func StringToPostType(postType string) PostType {
-	var MapEnumStringToPostType = func() map[string]PostType {
-		m := make(map[string]PostType)
-		for i := DAILY; i <= FRIEND; i++ {
-			m[i.String()] = i
-		}
-		return m
-	}()
-
-	return MapEnumStringToPostType[postType]
+func (postType PostType) Value() (driver.Value, error) {
+	return string(postType), nil
 }

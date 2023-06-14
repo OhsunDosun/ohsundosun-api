@@ -2,10 +2,8 @@ package auth
 
 import (
 	"net/http"
-	"ohsundosun-api/deta"
 	"ohsundosun-api/model"
 
-	"github.com/deta/deta-go/service/base"
 	"github.com/gin-gonic/gin"
 )
 
@@ -34,22 +32,22 @@ func NewPassword(c *gin.Context) {
 		return
 	}
 
-	query := base.Query{
-		{"email": req.Email},
-	}
+	// query := base.Query{
+	// 	{"email": req.Email},
+	// }
 
-	var result []*model.User
+	// var result []*model.DetaUser
 
-	deta.BaseUser.Fetch(&base.FetchInput{
-		Q:    query,
-		Dest: &result,
-	})
+	// deta.BaseUser.Fetch(&base.FetchInput{
+	// 	Q:    query,
+	// 	Dest: &result,
+	// })
 
-	if len(result) == 0 {
-		c.JSON(http.StatusNotFound, &model.DefaultResponse{
-			Message: "not_found_user",
-		})
-		c.Abort()
-		return
-	}
+	// if len(result) == 0 {
+	// 	c.JSON(http.StatusNotFound, &model.DefaultResponse{
+	// 		Message: "not_found_user",
+	// 	})
+	// 	c.Abort()
+	// 	return
+	// }
 }

@@ -2,10 +2,9 @@ package users
 
 import (
 	"net/http"
-	"ohsundosun-api/deta"
+	"ohsundosun-api/db"
 	"ohsundosun-api/model"
 
-	"github.com/deta/deta-go/service/base"
 	"github.com/gin-gonic/gin"
 )
 
@@ -35,11 +34,7 @@ func UpdateNickname(c *gin.Context) {
 		return
 	}
 
-	err = deta.BaseUser.Update(user.Key, base.Updates{
-		"nickname": req.Nickname,
-	})
-
-	if err != nil {
+	if err := db.DB.Model(&user).Updates(model.User{Nickname: req.Nickname}).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, &model.DefaultResponse{
 			Message: "failed_update",
 		})

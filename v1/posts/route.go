@@ -24,10 +24,5 @@ func SetRoute(rg *gin.RouterGroup) {
 		auth.POST(":postId/comments", middleware.CheckAccessToken(), AddComment)
 		auth.DELETE(":postId/comments/:commentId", middleware.CheckAccessToken(), DeleteComment)
 		auth.POST(":postId/comments/:commentId/report", middleware.CheckAccessToken(), ReportComment)
-
-		// reply
-		auth.POST(":postId/comments/:commentId/reply", middleware.CheckAccessToken(), AddCommentReply)
-		auth.DELETE(":postId/comments/:commentId/reply/:replyId", middleware.CheckAccessToken(), DeleteCommentReply)
-		auth.POST(":postId/comments/:commentId/reply/:replyId/report", middleware.CheckAccessToken(), ReportCommentReply)
 	}
 }

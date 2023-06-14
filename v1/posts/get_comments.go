@@ -2,20 +2,12 @@ package posts
 
 import (
 	"net/http"
-	"ohsundosun-api/deta"
+	"ohsundosun-api/db"
 	"ohsundosun-api/model"
+	"time"
 
-	"github.com/deta/deta-go/service/base"
 	"github.com/gin-gonic/gin"
 )
-
-type dataReply struct {
-	Key       string `json:"key"  binding:"required" example:"test"`
-	Nickname  string `json:"nickname"  binding:"required" example:"test"`
-	MBTI      string `json:"mbti" binding:"required" example:"INTP"`
-	Content   string `json:"content"  binding:"required" example:"test"`
-	CreatedAt int64  `json:"createdAt"  binding:"required"`
-}
 
 // GetComments godoc
 // @Tags Posts-Comments
@@ -29,18 +21,22 @@ type dataReply struct {
 func GetComments(c *gin.Context) {
 	postId := c.Param("postId")
 
+	user := c.MustGet("user").(model.User)
+
 	type request struct {
-		LastKey *string `form:"lastKey"`
-		Limit   *int    `form:"limit"`
+		Offset *int `form:"offset"`
+		Limit  *int `form:"limit"`
 	}
 
 	type data struct {
-		Key       string      `json:"key"  binding:"required" example:"test"`
-		Nickname  string      `json:"nickname"  binding:"required" example:"test"`
-		MBTI      string      `json:"mbti" binding:"required" example:"INTP"`
-		Content   string      `json:"content"  binding:"required" example:"test"`
-		CreatedAt int64       `json:"createdAt"  binding:"required"`
-		Replys    []dataReply `json:"replys" binding:"required"`
+		ID        uint       `json:"-"`
+		UUID      model.UUID `json:"uuid"  binding:"required" example:"test"`
+		MBTI      string     `json:"mbti" binding:"required" example:"INTP"`
+		Nickname  string     `json:"nickname"  binding:"required" example:"test"`
+		Level     uint       `json:"level"  binding:"required" example:"0"`
+		Content   string     `json:"content"  binding:"required" example:"test"`
+		CreatedAt time.Time  `json:"createdAt"  binding:"required"`
+		IsMine    bool       `json:"isMine" binding:"required"`
 	}
 
 	req := &request{}
@@ -53,24 +49,34 @@ func GetComments(c *gin.Context) {
 		return
 	}
 
-	queryData := make(map[string]interface{})
-	queryData["active"] = true
-	queryData["postKey"] = postId
+	var post model.Post
 
-	query := base.Query{queryData}
+	if err := db.DB.Model(&model.Post{}).First(&post, "uuid = UUID_TO_BIN(?)", postId).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, &model.DefaultResponse{
+			Message: "not_found_post",
+		})
+		c.Abort()
+		return
+	}
 
-	list := []*data{}
+	var comments []data
 
-	var result []*model.Comment
+	commentsSelect := db.DB.Model(&model.Comment{})
+	commentsSelect = commentsSelect.Select("comments.id, comments.uuid, users.mbti, users.nickname, comments.level, comments.content, comments.created_at, comments.user_id = ? as is_mine", user.ID)
+	commentsSelect = commentsSelect.Joins("left join users on comments.user_id = users.id")
 
-	deta.BaseComment.Fetch(&base.FetchInput{
-		Q:       query,
-		Dest:    &result,
-		Limit:   *req.Limit,
-		LastKey: *req.LastKey,
-	})
+	commentsSelect = commentsSelect.Where("comments.post_id", post.ID)
+	commentsSelect = commentsSelect.Where("comments.active", true)
 
-	if len(result) == 0 {
+	commentsSelect = commentsSelect.Order("comments.group_id asc, comments.parent_id asc")
+
+	if req.Limit != nil && *req.Limit != 0 && req.Offset != nil {
+		commentsSelect = commentsSelect.Limit(*req.Limit).Offset(*req.Offset)
+	}
+
+	commentsSelect.Find(&comments)
+
+	if len(comments) == 0 {
 		c.JSON(http.StatusNotFound, &model.DefaultResponse{
 			Message: "not_found_comments",
 		})
@@ -78,35 +84,8 @@ func GetComments(c *gin.Context) {
 		return
 	}
 
-	for _, comment := range result {
-		replys := []dataReply{}
-
-		for _, reply := range comment.Replys {
-			if reply.Active {
-				replys = append(replys, dataReply{
-					Key:       reply.Key,
-					Nickname:  reply.Nickname,
-					MBTI:      reply.MBTI.String(),
-					Content:   reply.Content,
-					CreatedAt: reply.CreatedAt,
-				},
-				)
-			}
-		}
-
-		list = append(list, &data{
-			Key:       comment.Key,
-			Nickname:  comment.Nickname,
-			MBTI:      comment.MBTI.String(),
-			Content:   comment.Content,
-			CreatedAt: comment.CreatedAt,
-			Replys:    replys,
-		},
-		)
-	}
-
 	c.JSON(http.StatusOK, &model.DataResponse{
 		Message: "success",
-		Data:    &list,
+		Data:    comments,
 	})
 }

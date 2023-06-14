@@ -1,34 +1,22 @@
 package model
 
 import (
-	"database/sql"
-	"ohsundosun-api/enum"
+	"time"
 )
 
 type Comment struct {
-	Key       string    `json:"key"`
-	PostKey   string    `json:"postKey"`
-	UserKey   string    `json:"userKey"`
-	Nickname  string    `json:"nickname"`
-	MBTI      enum.MBTI `json:"mbti"`
-	Content   string    `json:"content"`
-	CreatedAt int64     `json:"createdAt"`
-	Active    bool      `json:"active"`
-	Replys    []Reply   `json:"replys"`
+	ID       uint   `gorm:"primaryKey"`
+	UUID     UUID   `gorm:"uniqueIndex;default:(UUID_TO_BIN(UUID()));not null"`
+	GroupID  *uint  `gorm:"index;default:null"`
+	ParentID *uint  `gorm:"index;default:null"`
+	Level    uint   `gorm:"index;not null;default:0"`
+	PostID   uint   `gorm:"index;not null"`
+	UserID   uint   `gorm:"index;not null"`
+	Content  string `gorm:"not null"`
 
-	UpdatedAt  sql.NullInt64 `json:"updatedAt"`
-	InActiveAt sql.NullInt64 `json:"inActiveAt"`
-}
+	Active     *bool      `gorm:"index;default:true;not null"`
+	InActiveAt *time.Time `gorm:"default:null"`
 
-type Reply struct {
-	Key       string    `json:"key"`
-	UserKey   string    `json:"userKey"`
-	Nickname  string    `json:"nickname"`
-	MBTI      enum.MBTI `json:"mbti"`
-	Content   string    `json:"content"`
-	CreatedAt int64     `json:"createdAt"`
-	Active    bool      `json:"active"`
-
-	UpdatedAt  sql.NullInt64 `json:"updatedAt"`
-	InActiveAt sql.NullInt64 `json:"inActiveAt"`
+	CreatedAt time.Time  `gorm:"not null"`
+	UpdatedAt *time.Time `gorm:"autoUpdateTime:false;default:null"`
 }

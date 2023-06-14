@@ -1,10 +1,14 @@
 package model
 
-import "ohsundosun-api/enum"
+import (
+	"ohsundosun-api/enum"
+	"time"
+)
 
 type Report struct {
-	Key       string          `json:"key"`
-	Type      enum.ReportType `json:"type"`
-	TargetKey string          `json:"targetKey"`
-	CreatedAt int64           `json:"createdAt"`
+	ID        uint            `gorm:"primaryKey"`
+	Type      enum.ReportType `gorm:"index;type:ENUM('POST', 'COMMENT');not null"`
+	UserID    uint            `gorm:"index;not null"`
+	TargetID  uint            `gorm:"index;not null"`
+	CreatedAt time.Time       `gorm:"not null"`
 }

@@ -1,15 +1,12 @@
 package posts
 
 import (
-	"database/sql"
 	"net/http"
-	"ohsundosun-api/deta"
+	"ohsundosun-api/db"
 	"ohsundosun-api/enum"
 	"ohsundosun-api/model"
 	"strings"
-	"time"
 
-	"github.com/deta/deta-go/service/base"
 	"github.com/gin-gonic/gin"
 )
 
@@ -49,16 +46,15 @@ func UpdatePost(c *gin.Context) {
 
 	var post model.Post
 
-	err = deta.BasePost.Get(postId, &post)
-	if err != nil || post.Key != postId {
-		c.JSON(http.StatusNotFound, &model.DefaultResponse{
+	if err := db.DB.Model(&model.Post{}).First(&post, "uuid = UUID_TO_BIN(?)", postId).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, &model.DefaultResponse{
 			Message: "not_found_post",
 		})
 		c.Abort()
 		return
 	}
 
-	if post.UserKey != user.Key {
+	if post.UserID != user.ID {
 		c.JSON(http.StatusForbidden, &model.DefaultResponse{
 			Message: "forbidden",
 		})
@@ -66,29 +62,12 @@ func UpdatePost(c *gin.Context) {
 		return
 	}
 
-	postType := enum.StringToPostType(strings.ToUpper(req.Type))
-	if postType == 0 {
-		c.JSON(http.StatusBadRequest, &model.DefaultResponse{
-			Message: "bad_request",
-		})
-		c.Abort()
-		return
-	}
-
-	updatesPost := base.Updates{
-		"title":   req.Title,
-		"content": req.Content,
-		"type":    postType,
-		"images":  req.Images,
-		"updatedAt": sql.NullInt64{
-			Int64: time.Now().Unix(),
-			Valid: true,
-		},
-	}
-
-	err = deta.BasePost.Update(postId, updatesPost)
-
-	if err != nil {
+	if err := db.DB.Model(&post).Updates(model.Post{
+		Type:    enum.PostType(req.Type),
+		Title:   req.Title,
+		Content: req.Content,
+		Images:  strings.Join(req.Images, ","),
+	}).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, &model.DefaultResponse{
 			Message: "failed_update",
 		})

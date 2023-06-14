@@ -2,11 +2,9 @@ package users
 
 import (
 	"net/http"
-	"ohsundosun-api/deta"
+	"ohsundosun-api/db"
 	"ohsundosun-api/model"
-	"ohsundosun-api/util"
 
-	"github.com/deta/deta-go/service/base"
 	"github.com/gin-gonic/gin"
 )
 
@@ -23,7 +21,7 @@ func UpdateFCM(c *gin.Context) {
 	user := c.MustGet("user").(model.User)
 
 	type request struct {
-		FCM string `json:"fcm" binding:"required" example:"test"`
+		Token string `json:"token" binding:"required" example:"test"`
 	}
 
 	req := &request{}
@@ -36,13 +34,12 @@ func UpdateFCM(c *gin.Context) {
 		return
 	}
 
-	err = deta.BaseUser.Update(user.Key, base.Updates{
-		"fcm": util.DeleteDuplicateItem(append(user.FCM, req.FCM)),
-	})
-
-	if err != nil {
+	if err := db.DB.Create(&model.UserToken{
+		UserID: user.ID,
+		Token:  req.Token,
+	}).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, &model.DefaultResponse{
-			Message: "failed_update",
+			Message: "failed_insert",
 		})
 		c.Abort()
 		return

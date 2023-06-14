@@ -2,12 +2,10 @@ package users
 
 import (
 	"net/http"
-	"ohsundosun-api/deta"
+	"ohsundosun-api/db"
 	"ohsundosun-api/enum"
 	"ohsundosun-api/model"
-	"strings"
 
-	"github.com/deta/deta-go/service/base"
 	"github.com/gin-gonic/gin"
 )
 
@@ -37,20 +35,7 @@ func UpdateMBTI(c *gin.Context) {
 		return
 	}
 
-	mbti := enum.StringToMBTI(strings.ToUpper(req.MBTI))
-	if mbti == 0 {
-		c.JSON(http.StatusBadRequest, &model.DefaultResponse{
-			Message: "bad_request",
-		})
-		c.Abort()
-		return
-	}
-
-	err = deta.BaseUser.Update(user.Key, base.Updates{
-		"mbti": mbti,
-	})
-
-	if err != nil {
+	if err := db.DB.Model(&user).Updates(model.User{MBTI: enum.MBTI(req.MBTI)}).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, &model.DefaultResponse{
 			Message: "failed_update",
 		})

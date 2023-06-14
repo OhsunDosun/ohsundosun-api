@@ -1,61 +1,36 @@
 package enum
 
-type MBTI int
+import "database/sql/driver"
+
+type MBTI string
 
 const (
-	INTJ MBTI = 1 + iota
-	INTP
-	ENTJ
-	ENTP
+	INTJ MBTI = "INTJ"
+	INTP MBTI = "INTP"
+	ENTJ MBTI = "ENTJ"
+	ENTP MBTI = "ENTP"
 
-	INFJ
-	INFP
-	ENFJ
-	ENFP
+	INFJ MBTI = "INFJ"
+	INFP MBTI = "INFP"
+	ENFJ MBTI = "ENFJ"
+	ENFP MBTI = "ENFP"
 
-	ISFJ
-	ISTJ
-	ESFJ
-	ESTJ
+	ISFJ MBTI = "ISFJ"
+	ISTJ MBTI = "ISTJ"
+	ESFJ MBTI = "ESFJ"
+	ESTJ MBTI = "ESTJ"
 
-	ISFP
-	ISTP
-	ESFP
-	ESTP
+	ISFP MBTI = "ISFP"
+	ISTP MBTI = "ISTP"
+	ESFP MBTI = "ESFP"
+	ESTP MBTI = "ESTP"
 )
 
-var mbtiList = []string{
-	"INTJ",
-	"INTP",
-	"ENTJ",
-	"ENTP",
-
-	"INFJ",
-	"INFP",
-	"ENFJ",
-	"ENFP",
-
-	"ISFJ",
-	"ISTJ",
-	"ESFJ",
-	"ESTJ",
-
-	"ISFP",
-	"ISTP",
-	"ESFP",
-	"ESTP",
+func (mbti *MBTI) Scan(value interface{}) error {
+	*mbti = MBTI(value.([]byte))
+	return nil
 }
 
-func (m MBTI) String() string { return mbtiList[(m - 1)] }
-
-func StringToMBTI(mbti string) MBTI {
-	var MapEnumStringToMBTI = func() map[string]MBTI {
-		m := make(map[string]MBTI)
-		for i := INTJ; i <= ESTP; i++ {
-			m[i.String()] = i
-		}
-		return m
-	}()
-
-	return MapEnumStringToMBTI[mbti]
+func (mbti MBTI) Value() (driver.Value, error) {
+	return string(mbti), nil
 }

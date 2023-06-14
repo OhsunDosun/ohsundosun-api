@@ -52,7 +52,7 @@ func AddImage(c *gin.Context) {
 		}
 
 		name, err := deta.DrivePost.Put(&drive.PutInput{
-			Name: user.Key + "/" + image.Filename,
+			Name: string(user.ID) + "/" + image.Filename,
 			Body: file,
 		})
 

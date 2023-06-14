@@ -1,13 +1,11 @@
 package posts
 
 import (
-	"database/sql"
 	"net/http"
-	"ohsundosun-api/deta"
+	"ohsundosun-api/db"
 	"ohsundosun-api/model"
 	"time"
 
-	"github.com/deta/deta-go/service/base"
 	"github.com/gin-gonic/gin"
 )
 
@@ -28,16 +26,15 @@ func DeletePost(c *gin.Context) {
 
 	var post model.Post
 
-	err := deta.BasePost.Get(postId, &post)
-	if err != nil || post.Key != postId {
-		c.JSON(http.StatusNotFound, &model.DefaultResponse{
+	if err := db.DB.Model(&model.Post{}).First(&post, "uuid = UUID_TO_BIN(?)", postId).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, &model.DefaultResponse{
 			Message: "not_found_post",
 		})
 		c.Abort()
 		return
 	}
 
-	if post.UserKey != user.Key {
+	if post.UserID != user.ID {
 		c.JSON(http.StatusForbidden, &model.DefaultResponse{
 			Message: "forbidden",
 		})
@@ -45,17 +42,13 @@ func DeletePost(c *gin.Context) {
 		return
 	}
 
-	updatesPost := base.Updates{
-		"active": false,
-		"inActiveAt": sql.NullInt64{
-			Int64: time.Now().Unix(),
-			Valid: true,
-		},
-	}
+	active := false
+	now := time.Now()
 
-	err = deta.BasePost.Update(postId, updatesPost)
-
-	if err != nil {
+	if err := db.DB.Model(&post).Updates(model.Post{
+		Active:     &active,
+		InActiveAt: &now,
+	}).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, &model.DefaultResponse{
 			Message: "failed_update",
 		})

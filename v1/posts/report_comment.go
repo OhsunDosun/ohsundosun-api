@@ -2,11 +2,9 @@ package posts
 
 import (
 	"net/http"
-	"ohsundosun-api/deta"
+	"ohsundosun-api/db"
 	"ohsundosun-api/enum"
 	"ohsundosun-api/model"
-	"ohsundosun-api/util"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -24,27 +22,35 @@ func ReportComment(c *gin.Context) {
 	postId := c.Param("postId")
 	commentId := c.Param("commentId")
 
-	var comment model.Comment
+	user := c.MustGet("user").(model.User)
 
-	err := deta.BaseComment.Get(commentId, &comment)
-	if err != nil || comment.PostKey != postId {
-		c.JSON(http.StatusNotFound, &model.DefaultResponse{
-			Message: "not_found_comment",
+	var post model.Post
+
+	if err := db.DB.Model(&model.Post{}).First(&post, "uuid = UUID_TO_BIN(?)", postId).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, &model.DefaultResponse{
+			Message: "not_found_post",
 		})
 		c.Abort()
 		return
 	}
 
-	report := &model.Report{
-		Key:       util.NewULID().String(),
-		Type:      enum.COMMENT,
-		TargetKey: commentId,
-		CreatedAt: time.Now().Unix(),
+	var comment model.Comment
+
+	if err := db.DB.Model(&model.Comment{}).First(&comment, "uuid = UUID_TO_BIN(?)", commentId).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, &model.DefaultResponse{
+			Message: "not_found_post",
+		})
+		c.Abort()
+		return
 	}
 
-	_, err = deta.BaseReport.Insert(report)
+	report := model.Report{
+		Type:     enum.ReportType("Comment"),
+		UserID:   user.ID,
+		TargetID: comment.ID,
+	}
 
-	if err != nil {
+	if err := db.DB.Create(&report).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, &model.DefaultResponse{
 			Message: "failed_insert",
 		})

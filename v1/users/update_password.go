@@ -1,14 +1,10 @@
 package users
 
 import (
-	"database/sql"
 	"net/http"
-	"ohsundosun-api/deta"
+	"ohsundosun-api/db"
 	"ohsundosun-api/model"
-	"strings"
-	"time"
 
-	"github.com/deta/deta-go/service/base"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -41,61 +37,21 @@ func UpdatePaasword(c *gin.Context) {
 		return
 	}
 
-	if strings.ToUpper(req.Type) == "NEW_PASSWORD" {
-		if !user.NewPasswordCreatedAt.Valid || !user.NewPassword.Valid {
-			c.JSON(http.StatusBadRequest, &model.DefaultResponse{
-				Message: "bad_password",
-			})
-			c.Abort()
-			return
-		}
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.OldPassword))
 
-		now := time.Now()
-
-		if now.Sub(time.Unix(user.NewPasswordCreatedAt.Int64, 0)) > 3*time.Minute {
-			c.JSON(http.StatusBadRequest, &model.DefaultResponse{
-				Message: "bad_password",
-			})
-			c.Abort()
-			return
-		}
-
-		err = bcrypt.CompareHashAndPassword([]byte(user.NewPassword.String), []byte(req.OldPassword))
-
-		if err != nil {
-			c.JSON(http.StatusBadRequest, &model.DefaultResponse{
-				Message: "bad_password",
-			})
-			c.Abort()
-			return
-		}
-	} else {
-		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.OldPassword))
-
-		if err != nil {
-			c.JSON(http.StatusBadRequest, &model.DefaultResponse{
-				Message: "bad_password",
-			})
-			c.Abort()
-			return
-		}
+	if err != nil {
+		c.JSON(http.StatusBadRequest, &model.DefaultResponse{
+			Message: "bad_password",
+		})
+		c.Abort()
+		return
 	}
 
 	hashPassword, _ := bcrypt.GenerateFromPassword([]byte(req.NewPassword), 10)
 
-	err = deta.BaseUser.Update(user.Key, base.Updates{
-		"password": string(hashPassword),
-		"newPassword": sql.NullString{
-			String: "",
-			Valid:  false,
-		},
-		"newPasswordCreatedAt": sql.NullInt64{
-			Int64: 0,
-			Valid: false,
-		},
-	})
-
-	if err != nil {
+	if err := db.DB.Model(&user).Updates(model.User{
+		Password: string(hashPassword),
+	}).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, &model.DefaultResponse{
 			Message: "failed_update",
 		})
@@ -106,4 +62,66 @@ func UpdatePaasword(c *gin.Context) {
 	c.JSON(http.StatusOK, &model.DefaultResponse{
 		Message: "success",
 	})
+	// if strings.ToUpper(req.Type) == "NEW_PASSWORD" {
+	// 	if !user.NewPasswordCreatedAt.Valid || !user.NewPassword.Valid {
+	// 		c.JSON(http.StatusBadRequest, &model.DefaultResponse{
+	// 			Message: "bad_password",
+	// 		})
+	// 		c.Abort()
+	// 		return
+	// 	}
+
+	// 	now := time.Now()
+
+	// 	if now.Sub(time.Unix(user.NewPasswordCreatedAt.Int64, 0)) > 3*time.Minute {
+	// 		c.JSON(http.StatusBadRequest, &model.DefaultResponse{
+	// 			Message: "bad_password",
+	// 		})
+	// 		c.Abort()
+	// 		return
+	// 	}
+
+	// 	err = bcrypt.CompareHashAndPassword([]byte(user.NewPassword.String), []byte(req.OldPassword))
+
+	// 	if err != nil {
+	// 		c.JSON(http.StatusBadRequest, &model.DefaultResponse{
+	// 			Message: "bad_password",
+	// 		})
+	// 		c.Abort()
+	// 		return
+	// 	}
+	// } else {
+	// 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.OldPassword))
+
+	// 	if err != nil {
+	// 		c.JSON(http.StatusBadRequest, &model.DefaultResponse{
+	// 			Message: "bad_password",
+	// 		})
+	// 		c.Abort()
+	// 		return
+	// 	}
+	// }
+
+	// hashPassword, _ := bcrypt.GenerateFromPassword([]byte(req.NewPassword), 10)
+
+	// err = deta.BaseUser.Update(user.Key, base.Updates{
+	// 	"password": string(hashPassword),
+	// 	"newPassword": sql.NullString{
+	// 		String: "",
+	// 		Valid:  false,
+	// 	},
+	// 	"newPasswordCreatedAt": sql.NullInt64{
+	// 		Int64: 0,
+	// 		Valid: false,
+	// 	},
+	// })
+
+	// if err != nil {
+	// 	c.JSON(http.StatusInternalServerError, &model.DefaultResponse{
+	// 		Message: "failed_update",
+	// 	})
+	// 	c.Abort()
+	// 	return
+	// }
+
 }

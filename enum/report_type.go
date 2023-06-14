@@ -1,29 +1,19 @@
 package enum
 
-type ReportType int
+import "database/sql/driver"
+
+type ReportType string
 
 const (
-	POST ReportType = 1 + iota
-	COMMENT
-	REPLY
+	POST    ReportType = "POST"
+	COMMENT ReportType = "COMMENT"
 )
 
-var reportTypeList = []string{
-	"POST",
-	"COMMENT",
-	"REPLY",
+func (reportType *ReportType) Scan(value interface{}) error {
+	*reportType = ReportType(value.([]byte))
+	return nil
 }
 
-func (m ReportType) String() string { return reportTypeList[(m - 1)] }
-
-func StringToReportType(reportType string) ReportType {
-	var MapEnumStringToReportType = func() map[string]ReportType {
-		m := make(map[string]ReportType)
-		for i := POST; i <= REPLY; i++ {
-			m[i.String()] = i
-		}
-		return m
-	}()
-
-	return MapEnumStringToReportType[reportType]
+func (reportType ReportType) Value() (driver.Value, error) {
+	return string(reportType), nil
 }

@@ -2,12 +2,10 @@ package posts
 
 import (
 	"net/http"
-	"ohsundosun-api/deta"
+	"ohsundosun-api/db"
 	"ohsundosun-api/enum"
 	"ohsundosun-api/model"
-	"ohsundosun-api/util"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,6 +26,7 @@ func AddPost(c *gin.Context) {
 	type request struct {
 		Title   string   `json:"title" binding:"required,max=30" example:"test"`
 		Content string   `json:"content" binding:"required,max=6000" example:"test"`
+		MBTI    string   `json:"mbti" enums:"INTJ,INTP,ENTJ,ENTP,INFJ,INFP,ENFJ,ENFP,ISFJ,ISTJ,ESFJ,ESTJ,ISFP,ISTP,ESFP,ESTP" binding:"required" example:"INTP"`
 		Type    string   `json:"type" enums:"DAILY,LOVE,FRIEND" binding:"required" example:"DAILY"`
 		Images  []string `json:"images" binding:"required" exmaple:"[]"`
 	}
@@ -42,31 +41,16 @@ func AddPost(c *gin.Context) {
 		return
 	}
 
-	postType := enum.StringToPostType(strings.ToUpper(req.Type))
-	if postType == 0 {
-		c.JSON(http.StatusBadRequest, &model.DefaultResponse{
-			Message: "bad_request",
-		})
-		c.Abort()
-		return
+	post := model.Post{
+		UserID:  user.ID,
+		MBTI:    enum.MBTI(req.MBTI),
+		Type:    enum.PostType(req.Type),
+		Title:   req.Title,
+		Content: req.Content,
+		Images:  strings.Join(req.Images, ","),
 	}
 
-	p := &model.Post{
-		Key:       util.NewULID().String(),
-		UserKey:   user.Key,
-		Nickname:  user.Nickname,
-		MBTI:      user.MBTI,
-		Title:     req.Title,
-		Content:   req.Content,
-		Type:      postType,
-		Images:    req.Images,
-		CreatedAt: time.Now().Unix(),
-		Active:    true,
-	}
-
-	_, err = deta.BasePost.Insert(p)
-
-	if err != nil {
+	if err := db.DB.Create(&post).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, &model.DefaultResponse{
 			Message: "failed_insert",
 		})

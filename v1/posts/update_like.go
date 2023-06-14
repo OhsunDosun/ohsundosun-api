@@ -2,13 +2,11 @@ package posts
 
 import (
 	"net/http"
-	"ohsundosun-api/deta"
+	"ohsundosun-api/db"
 	"ohsundosun-api/model"
-	"ohsundosun-api/util"
-	"time"
 
-	"github.com/deta/deta-go/service/base"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // UpdateLike godoc
@@ -43,54 +41,51 @@ func UpdateLike(c *gin.Context) {
 
 	var post model.Post
 
-	err = deta.BasePost.Get(postId, &post)
-	if err != nil || post.Key != postId {
-		c.JSON(http.StatusNotFound, &model.DefaultResponse{
+	if err := db.DB.Model(&model.Post{}).First(&post, "uuid = UUID_TO_BIN(?)", postId).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, &model.DefaultResponse{
 			Message: "not_found_post",
 		})
 		c.Abort()
 		return
 	}
 
-	queryData := make(map[string]interface{})
-	queryData["postKey"] = postId
-	queryData["userKey"] = user.Key
+	var postLikes []model.PostLike
 
-	query := base.Query{queryData}
+	db.DB.Model(&model.PostLike{}).Where(model.PostLike{
+		UserID: user.ID,
+		PostID: post.ID,
+	}).Find(&postLikes)
 
-	var result []*model.PostLike
+	db.DB.Transaction(func(tx *gorm.DB) error {
+		if *req.Like {
+			if len(postLikes) == 0 {
+				postLike := model.PostLike{
+					UserID: user.ID,
+					PostID: post.ID,
+				}
 
-	deta.BasePostLike.Fetch(&base.FetchInput{
-		Q:    query,
-		Dest: &result,
+				if err := tx.Create(&postLike).Error; err != nil {
+					return err
+				}
+
+				if err := tx.Exec("UPDATE posts SET like_count = like_count + 1 WHERE id = ?", post.ID).Error; err != nil {
+					return err
+				}
+			}
+		} else {
+			if len(postLikes) != 0 {
+				if err := tx.Delete(&postLikes).Error; err != nil {
+					return err
+				}
+
+				if err := tx.Exec("UPDATE posts SET like_count = like_count + ? WHERE id = ?", -len(postLikes), post.ID).Error; err != nil {
+					return err
+				}
+			}
+		}
+
+		return nil
 	})
-
-	for _, postLike := range result {
-		deta.BasePostLike.Delete(postLike.Key)
-	}
-
-	if *req.Like {
-		p := &model.PostLike{
-			Key:       util.NewULID().String(),
-			PostKey:   postId,
-			UserKey:   user.Key,
-			CreatedAt: time.Now().Unix(),
-		}
-
-		deta.BasePostLike.Insert(p)
-
-		updatesPost := base.Updates{
-			"likeCount": deta.BasePost.Util.Increment(1),
-		}
-
-		deta.BasePost.Update(postId, updatesPost)
-	} else {
-		updatesPost := base.Updates{
-			"likeCount": deta.BasePost.Util.Increment(-len(result)),
-		}
-
-		deta.BasePost.Update(postId, updatesPost)
-	}
 
 	c.JSON(http.StatusOK, &model.DefaultResponse{
 		Message: "success",

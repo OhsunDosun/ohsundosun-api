@@ -2,14 +2,28 @@ package posts
 
 import (
 	"net/http"
-	"ohsundosun-api/deta"
-	"ohsundosun-api/enum"
+	"ohsundosun-api/db"
 	"ohsundosun-api/model"
-	"strings"
+	"time"
 
-	"github.com/deta/deta-go/service/base"
 	"github.com/gin-gonic/gin"
 )
+
+type post struct {
+	ID           uint       `json:"-"`
+	UUID         model.UUID `json:"uuid"  binding:"required" example:"test"`
+	MBTI         string     `json:"mbti" binding:"required" example:"INTP"`
+	Type         string     `json:"type"  binding:"required" example:"DAILY"`
+	Nickname     string     `json:"nickname"  binding:"required" example:"test"`
+	Title        string     `json:"title"  binding:"required" example:"test"`
+	Content      string     `json:"content"  binding:"required" example:"test"`
+	Images       string     `json:"images"  binding:"required" example:"test.png,test.png"`
+	CreatedAt    time.Time  `json:"createdAt"  binding:"required"`
+	LikeCount    int8       `json:"likeCount" binding:"required" example:"0"`
+	CommentCount int8       `json:"commentCount" binding:"required" example:"0"`
+	IsLike       bool       `json:"isLike" binding:"required"`
+	IsMine       bool       `json:"isMine" binding:"required"`
+}
 
 // GetPosts godoc
 // @Tags Posts
@@ -17,7 +31,7 @@ import (
 // @Description 게시물 리스트
 // @Security AppAuth
 // @Param request query posts.GetPosts.request true "query params"
-// @Success 200 {object} model.DataResponse{data=[]posts.GetPosts.data} "success"
+// @Success 200 {object} model.DataResponse{data=posts.GetPosts.data} "success"
 // @Success 404 {object} model.DefaultResponse "not_found_posts"
 // @Router /v1/posts [get]
 func GetPosts(c *gin.Context) {
@@ -33,18 +47,8 @@ func GetPosts(c *gin.Context) {
 	}
 
 	type data struct {
-		Key          string   `json:"key"  binding:"required" example:"test"`
-		UserKey      string   `json:"userKey"  binding:"required" example:"test"`
-		MBTI         string   `json:"mbti" binding:"required" example:"INTP"`
-		Type         string   `json:"type"  binding:"required" example:"DAILY"`
-		Nickname     string   `json:"nickname"  binding:"required" example:"test"`
-		Title        string   `json:"title"  binding:"required" example:"test"`
-		Content      string   `json:"content"  binding:"required" example:"test"`
-		Images       []string `json:"images"  binding:"required" example:"test.png,test.png"`
-		CreatedAt    int64    `json:"createdAt"  binding:"required"`
-		LikeCount    int8     `json:"likeCount" binding:"required" example:"0"`
-		CommentCount int8     `json:"commentCount" binding:"required" example:"0"`
-		IsLike       bool     `json:"isLike" binding:"required"`
+		List    []post `json:"list" binding:"required"`
+		LastKey *uint
 	}
 
 	req := &request{}
@@ -57,135 +61,66 @@ func GetPosts(c *gin.Context) {
 		return
 	}
 
-	queryData := make(map[string]interface{})
-	queryData["active"] = true
+	var posts []post
+
+	postsSelect := db.DB.Model(&model.Post{})
+	postsSelect = postsSelect.Select("posts.id, posts.uuid, posts.mbti, posts.type, users.nickname, posts.title, posts.content, posts.images, posts.created_at, posts.like_count, posts.comment_count, COUNT(post_likes.id) > 0 as is_like, posts.user_id = ? as is_mine", user.ID)
+	postsSelect = postsSelect.Joins("left join users on posts.user_id = users.id")
+	postsSelect = postsSelect.Joins("left join post_likes on posts.id = post_likes.post_id and post_likes.user_id = ?", user.ID)
+
+	postsSelect = postsSelect.Where("posts.active", true)
+
 	if req.MBTI != nil && *req.MBTI != "" {
-		queryData["mbti"] = enum.StringToMBTI(strings.ToUpper(*req.MBTI))
+		postsSelect = postsSelect.Where("posts.mbti", *req.MBTI)
 	}
 	if req.Type != nil && *req.Type != "" {
-		queryData["type"] = enum.StringToPostType(strings.ToUpper(*req.Type))
+		postsSelect = postsSelect.Where("posts.type", *req.Type)
 	}
-
-	query := base.Query{queryData}
 
 	if req.Keyword != nil && *req.Keyword != "" {
-		queryTitleData := make(map[string]interface{})
-		for key, value := range queryData {
-			queryTitleData[key] = value
-		}
-		queryTitleData["title?contains"] = req.Keyword
-
-		queryContentData := make(map[string]interface{})
-		for key, value := range queryData {
-			queryContentData[key] = value
-		}
-		queryContentData["content?contains"] = req.Keyword
-
-		query = base.Query{queryTitleData, queryContentData}
+		postsSelect = postsSelect.Where("posts.title LIKE ?", "%"+*req.Keyword+"%")
 	}
 
-	list := []*data{}
+	if req.LastKey != nil && *req.LastKey != "" {
+		postsSelect = postsSelect.Where("posts.id < ?", *req.LastKey)
+	}
 
 	if req.Sort == "NEW" {
-		var result []*model.Post
-
-		deta.BasePost.Fetch(&base.FetchInput{
-			Q:       query,
-			Dest:    &result,
-			Limit:   *req.Limit,
-			LastKey: *req.LastKey,
-		})
-
-		if len(result) == 0 {
-			c.JSON(http.StatusNotFound, &model.DefaultResponse{
-				Message: "not_found_posts",
-			})
-			c.Abort()
-			return
-		}
-
-		for _, post := range result {
-			queryData := make(map[string]interface{})
-			queryData["postKey"] = post.Key
-			queryData["userKey"] = user.Key
-
-			query := base.Query{queryData}
-
-			var result []*model.PostLike
-
-			deta.BasePostLike.Fetch(&base.FetchInput{
-				Q:    query,
-				Dest: &result,
-			})
-
-			list = append(list, &data{
-				Key:          post.Key,
-				UserKey:      post.UserKey,
-				MBTI:         post.MBTI.String(),
-				Type:         post.Type.String(),
-				Nickname:     post.Nickname,
-				Title:        post.Title,
-				Content:      post.Content,
-				Images:       post.Images,
-				CreatedAt:    post.CreatedAt,
-				LikeCount:    post.LikeCount,
-				CommentCount: post.CommentCount,
-				IsLike:       len(result) > 0,
-			},
-			)
-		}
+		postsSelect = postsSelect.Order("posts.created_at desc")
 	} else {
-		var result []*model.LikeSortPost
-
-		deta.BaseLikeSortPost.Fetch(&base.FetchInput{
-			Q:       query,
-			Dest:    &result,
-			Limit:   *req.Limit,
-			LastKey: *req.LastKey,
-		})
-
-		if len(result) == 0 {
-			c.JSON(http.StatusNotFound, &model.DefaultResponse{
-				Message: "not_found_posts",
-			})
-			c.Abort()
-			return
-		}
-
-		for _, post := range result {
-			queryData := make(map[string]interface{})
-			queryData["postKey"] = post.Key
-			queryData["userKey"] = user.Key
-
-			query := base.Query{queryData}
-
-			var result []*model.PostLike
-
-			deta.BasePostLike.Fetch(&base.FetchInput{
-				Q:    query,
-				Dest: &result,
-			})
-
-			list = append(list, &data{
-				Key:          post.PostKey,
-				UserKey:      post.UserKey,
-				MBTI:         post.MBTI.String(),
-				Type:         post.Type.String(),
-				Nickname:     post.Nickname,
-				Title:        post.Title,
-				Content:      post.Content,
-				Images:       post.Images,
-				CreatedAt:    post.CreatedAt,
-				LikeCount:    post.LikeCount,
-				CommentCount: post.CommentCount,
-				IsLike:       len(result) > 0,
-			},
-			)
-		}
+		postsSelect = postsSelect.Order("posts.like_count desc")
 	}
 
-	c.JSON(http.StatusOK, &model.DataResponse{
-		Message: "success",
-		Data:    &list,
-	})
+	if req.Limit != nil && *req.Limit != 0 {
+		postsSelect = postsSelect.Limit(*req.Limit)
+	}
+
+	postsSelect = postsSelect.Group("posts.id")
+
+	postsSelect.Find(&posts)
+
+	if len(posts) == 0 {
+		c.JSON(http.StatusNotFound, &model.DefaultResponse{
+			Message: "not_found_posts",
+		})
+		c.Abort()
+		return
+	}
+
+	if len(posts) == *req.Limit {
+		c.JSON(http.StatusOK, &model.DataResponse{
+			Message: "success",
+			Data: &data{
+				List:    posts,
+				LastKey: &posts[*req.Limit-1].ID,
+			},
+		})
+	} else {
+		c.JSON(http.StatusOK, &model.DataResponse{
+			Message: "success",
+			Data: &data{
+				List: posts,
+			},
+		})
+	}
 }

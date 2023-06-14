@@ -2,11 +2,9 @@ package posts
 
 import (
 	"net/http"
-	"ohsundosun-api/deta"
+	"ohsundosun-api/db"
 	"ohsundosun-api/enum"
 	"ohsundosun-api/model"
-	"ohsundosun-api/util"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -23,27 +21,25 @@ import (
 func ReportPost(c *gin.Context) {
 	postId := c.Param("postId")
 
+	user := c.MustGet("user").(model.User)
+
 	var post model.Post
 
-	err := deta.BasePost.Get(postId, &post)
-	if err != nil {
-		c.JSON(http.StatusNotFound, &model.DefaultResponse{
+	if err := db.DB.Model(&model.Post{}).First(&post, "uuid = UUID_TO_BIN(?)", postId).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, &model.DefaultResponse{
 			Message: "not_found_post",
 		})
 		c.Abort()
 		return
 	}
 
-	report := &model.Report{
-		Key:       util.NewULID().String(),
-		Type:      enum.POST,
-		TargetKey: postId,
-		CreatedAt: time.Now().Unix(),
+	report := model.Report{
+		Type:     enum.ReportType("POST"),
+		UserID:   user.ID,
+		TargetID: post.ID,
 	}
 
-	_, err = deta.BaseReport.Insert(report)
-
-	if err != nil {
+	if err := db.DB.Create(&report).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, &model.DefaultResponse{
 			Message: "failed_insert",
 		})

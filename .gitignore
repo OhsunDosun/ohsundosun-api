@@ -54,3 +54,5 @@ tmp
 __debug_bin
 
 docs/
+
+.DS_Store

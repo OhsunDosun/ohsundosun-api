@@ -1,22 +1,42 @@
 package model
 
 import (
-	"database/sql"
 	"ohsundosun-api/enum"
+	"time"
 )
 
 type User struct {
-	Key          string    `json:"key"`
-	Email        string    `json:"email"`
-	Password     string    `json:"password"`
-	Nickname     string    `json:"nickname"`
-	MBTI         enum.MBTI `json:"mbti"`
-	CreatedAt    int64     `json:"createdAt"`
-	Notification bool      `json:"notification"`
-	Active       bool      `json:"active"`
-	FCM          []string  `json:"fcm"`
+	ID           uint      `gorm:"primaryKey"`
+	UUID         UUID      `gorm:"uniqueIndex;default:(UUID_TO_BIN(UUID()));not null"`
+	Email        string    `gorm:"unique;index;not null"`
+	Password     string    `gorm:"not null"`
+	Nickname     string    `gorm:"unique;index;not null"`
+	MBTI         enum.MBTI `gorm:"type:ENUM('INTJ', 'INTP', 'ENTJ', 'ENTP', 'INFJ', 'INFP', 'ENFJ', 'ENFP', 'ISFJ', 'ISTJ', 'ESFJ', 'ESTJ', 'ISFP', 'ISTP', 'ESFP', 'ESTP');not null"`
+	Notification *bool     `gorm:"default:true;not null"`
 
-	InActiveAt           sql.NullInt64  `json:"inActiveAt"`
-	NewPassword          sql.NullString `json:"newPassword"`
-	NewPasswordCreatedAt sql.NullInt64  `json:"newPasswordCreatedAt"`
+	Active     *bool      `gorm:"default:true;not null"`
+	InActiveAt *time.Time `gorm:"default:null"`
+
+	CreatedAt time.Time  `gorm:"not null"`
+	UpdatedAt *time.Time `gorm:"default:null"`
+}
+
+type UserToken struct {
+	UserID    uint      `gorm:"index;not null"`
+	Token     string    `gorm:"not null"`
+	CreatedAt time.Time `gorm:"not null"`
+}
+
+type UserTemporaryPassword struct {
+	UserID    uint      `gorm:"index;not null"`
+	Password  string    `gorm:"not null"`
+	CreatedAt time.Time `gorm:"not null"`
+}
+
+type UserRating struct {
+	ID        uint      `gorm:"primaryKey"`
+	UserID    uint      `gorm:"index;not null"`
+	Rating    float32   `gorm:"default:0;not null"`
+	Feedback  *string   `gorm:"default:null"`
+	CreatedAt time.Time `gorm:"not null"`
 }
