@@ -6,6 +6,7 @@ import (
 	"ohsundosun-api/model"
 	"ohsundosun-api/util"
 	"os"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -49,14 +50,51 @@ func SignIn(c *gin.Context) {
 		return
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
+	if strings.ToUpper(req.Type) == "DEFAULT" {
+		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
 
-	if err != nil {
-		c.JSON(http.StatusBadRequest, &model.DefaultResponse{
-			Message: "bad_password",
-		})
-		c.Abort()
-		return
+		if err != nil {
+			c.JSON(http.StatusBadRequest, &model.DefaultResponse{
+				Message: "bad_password",
+			})
+			c.Abort()
+			return
+		}
+	} else {
+		var userTemporaryPasswords []model.UserTemporaryPassword
+
+		userTemporaryPasswordsSelect := db.DB.Model(&model.UserTemporaryPassword{})
+		userTemporaryPasswordsSelect = userTemporaryPasswordsSelect.Where("user_id", user.ID)
+		userTemporaryPasswordsSelect = userTemporaryPasswordsSelect.Where("created_at > DATE_ADD(created_at, INTERVAL -2 DAY)")
+
+		userTemporaryPasswordsSelect.Find(&userTemporaryPasswords)
+
+		if len(userTemporaryPasswords) == 0 {
+			c.JSON(http.StatusNotFound, &model.DefaultResponse{
+				Message: "bad_password",
+			})
+			c.Abort()
+			return
+		}
+
+		isErrNil := false
+
+		for _, userTemporaryPassword := range userTemporaryPasswords {
+			err = bcrypt.CompareHashAndPassword([]byte(userTemporaryPassword.Password), []byte(req.Password))
+
+			if err == nil {
+				isErrNil = true
+				break
+			}
+		}
+
+		if !isErrNil {
+			c.JSON(http.StatusNotFound, &model.DefaultResponse{
+				Message: "bad_password",
+			})
+			c.Abort()
+			return
+		}
 	}
 
 	if req.Token != nil {

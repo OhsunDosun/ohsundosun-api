@@ -28,6 +28,7 @@ type UserToken struct {
 }
 
 type UserTemporaryPassword struct {
+	ID        uint      `gorm:"primaryKey"`
 	UserID    uint      `gorm:"index;not null"`
 	Password  string    `gorm:"not null"`
 	CreatedAt time.Time `gorm:"not null"`
