@@ -6,7 +6,7 @@ on:
       - dev
 
 jobs:
-  deploy-to-space:
+  deploy-to-fly:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -17,26 +17,16 @@ jobs:
       - name: Build Swagger
         run: go install github.com/swaggo/swag/cmd/swag@latest && swag init
 
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+
       # Prod Deploy
       - if: github.ref == 'refs/heads/main'
-        run: echo ${{secrets.SPACE_FILE_PROD}} | base64 --decode >> Spacefile
-
-      - if: github.ref == 'refs/heads/main'
-        name: Deta Space Deployment Github Action
-        uses: neobrains/space-deployment-github-action@v0.5
-        with:
-          access_token: ${{ secrets.SPACE_ACCESS_TOKEN }}
-          project_id: ${{ secrets.SPACE_PROJECT_ID_PROD }}
-          space_push: true
+        run: flyctl deploy --remote-only -c ./fly/prod-fly.toml
+        env:
+          FLY_API_TOKEN: ${{ secrets.PROD_FLY_API_TOKEN }}
 
       # Dev Deploy
       - if: github.ref == 'refs/heads/dev'
-        run: echo ${{secrets.SPACE_FILE_DEV}} | base64 --decode >> Spacefile
-
-      - if: github.ref == 'refs/heads/dev'
-        name: Deta Space Deployment Github Action
-        uses: neobrains/space-deployment-github-action@v0.5
-        with:
-          access_token: ${{ secrets.SPACE_ACCESS_TOKEN }}
-          project_id: ${{ secrets.SPACE_PROJECT_ID_DEV }}
-          space_push: true
+        run: flyctl deploy --remote-only -c ./fly/dev-fly.toml
+        env:
+          FLY_API_TOKEN: ${{ secrets.DEV_FLY_API_TOKEN }}
