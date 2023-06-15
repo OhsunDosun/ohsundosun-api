@@ -6,11 +6,13 @@ import (
 	"log"
 	"mime/multipart"
 	"os"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/google/uuid"
 )
 
 type S3Info struct {
@@ -54,9 +56,17 @@ func (info S3Info) UploadFile(file multipart.FileHeader, key string) (*string, *
 		return nil, &err
 	}
 
+	fileNames := strings.Split(file.Filename, ".")
+	fileName := uuid.NewString()
+
+	if len(fileNames) > 0 {
+		extension := fileNames[len(fileNames)-1]
+		fileName += "." + extension
+	}
+
 	_, err = info.Client.PutObject(context.TODO(), &s3.PutObjectInput{
 		Bucket:      aws.String(info.BucketName),
-		Key:         aws.String(key + "/" + file.Filename),
+		Key:         aws.String(key + "/" + fileName),
 		Body:        opendFile,
 		ContentType: aws.String(file.Header.Get("Content-Type")),
 	})
@@ -64,7 +74,7 @@ func (info S3Info) UploadFile(file multipart.FileHeader, key string) (*string, *
 		return nil, &err
 	}
 
-	url := os.Getenv("IMAGE_HOST") + "/" + key + "/" + file.Filename
+	url := os.Getenv("IMAGE_HOST") + "/" + key + "/" + fileName
 
 	return &url, nil
 }
