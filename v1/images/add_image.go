@@ -3,11 +3,10 @@ package images
 import (
 	"mime/multipart"
 	"net/http"
-	"ohsundosun-api/deta"
 	"ohsundosun-api/model"
-	"os"
+	"ohsundosun-api/s3"
+	"strings"
 
-	"github.com/deta/deta-go/service/drive"
 	"github.com/gin-gonic/gin"
 )
 
@@ -45,22 +44,13 @@ func AddImage(c *gin.Context) {
 	images := []string{}
 
 	for _, image := range req.Images {
-		file, err := image.Open()
+		url, err := s3.Info.UploadFile(image, strings.ToLower(req.Category)+"/"+user.UUID.String())
 
 		if err != nil {
 			break
 		}
 
-		name, err := deta.DrivePost.Put(&drive.PutInput{
-			Name: string(user.ID) + "/" + image.Filename,
-			Body: file,
-		})
-
-		if err != nil {
-			break
-		}
-
-		images = append(images, os.Getenv("APP_HOST")+"/image/post/"+name)
+		images = append(images, *url)
 	}
 
 	c.JSON(http.StatusCreated, &model.DataResponse{
