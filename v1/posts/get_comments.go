@@ -73,7 +73,7 @@ func GetComments(c *gin.Context) {
 	commentsSelect = commentsSelect.Where("comments.post_id", post.ID)
 	commentsSelect = commentsSelect.Where("comments.active", true)
 
-	commentsSelect = commentsSelect.Order("comments.group_id asc, comments.parent_id asc")
+	commentsSelect = commentsSelect.Order("comments.group_id desc, comments.level asc")
 
 	if req.Limit != nil && *req.Limit != 0 && req.LastKey != nil {
 		commentsSelect = commentsSelect.Limit(*req.Limit).Offset(*req.LastKey)
