@@ -9,13 +9,24 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type comment struct {
+	ID        uint       `json:"-"`
+	UUID      model.UUID `json:"uuid"  binding:"required" example:"test"`
+	MBTI      string     `json:"mbti" binding:"required" example:"INTP"`
+	Nickname  string     `json:"nickname"  binding:"required" example:"test"`
+	Level     uint       `json:"level"  binding:"required" example:"0"`
+	Content   string     `json:"content"  binding:"required" example:"test"`
+	CreatedAt time.Time  `json:"createdAt"  binding:"required"`
+	IsMine    bool       `json:"isMine" binding:"required"`
+}
+
 // GetComments godoc
 // @Tags Posts-Comments
 // @Summary 게시물 댓글 리스트
 // @Description 게시물 댓글 리스트
 // @Security AppAuth
 // @Param request query posts.GetComments.request true "query params"
-// @Success 200 {object} model.DataResponse{data=[]posts.GetComments.data} "success"
+// @Success 200 {object} model.DataResponse{data=posts.GetComments.data} "success"
 // @Success 404 {object} model.DefaultResponse "not_found_comments"
 // @Router /v1/posts/{postId}/comments [get]
 func GetComments(c *gin.Context) {
@@ -24,19 +35,13 @@ func GetComments(c *gin.Context) {
 	user := c.MustGet("user").(model.User)
 
 	type request struct {
-		Offset *int `form:"offset"`
-		Limit  *int `form:"limit"`
+		LastKey *int `form:"lastKey"`
+		Limit   *int `form:"limit"`
 	}
 
 	type data struct {
-		ID        uint       `json:"-"`
-		UUID      model.UUID `json:"uuid"  binding:"required" example:"test"`
-		MBTI      string     `json:"mbti" binding:"required" example:"INTP"`
-		Nickname  string     `json:"nickname"  binding:"required" example:"test"`
-		Level     uint       `json:"level"  binding:"required" example:"0"`
-		Content   string     `json:"content"  binding:"required" example:"test"`
-		CreatedAt time.Time  `json:"createdAt"  binding:"required"`
-		IsMine    bool       `json:"isMine" binding:"required"`
+		List    []comment `json:"list" binding:"required"`
+		LastKey *int      `json:"lastKey"`
 	}
 
 	req := &request{}
@@ -59,7 +64,7 @@ func GetComments(c *gin.Context) {
 		return
 	}
 
-	var comments []data
+	var comments []comment
 
 	commentsSelect := db.DB.Model(&model.Comment{})
 	commentsSelect = commentsSelect.Select("comments.id, comments.uuid, users.mbti, users.nickname, comments.level, comments.content, comments.created_at, comments.user_id = ? as is_mine", user.ID)
@@ -70,8 +75,8 @@ func GetComments(c *gin.Context) {
 
 	commentsSelect = commentsSelect.Order("comments.group_id asc, comments.parent_id asc")
 
-	if req.Limit != nil && *req.Limit != 0 && req.Offset != nil {
-		commentsSelect = commentsSelect.Limit(*req.Limit).Offset(*req.Offset)
+	if req.Limit != nil && *req.Limit != 0 && req.LastKey != nil {
+		commentsSelect = commentsSelect.Limit(*req.Limit).Offset(*req.LastKey)
 	}
 
 	commentsSelect.Find(&comments)
@@ -84,8 +89,30 @@ func GetComments(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, &model.DataResponse{
-		Message: "success",
-		Data:    comments,
-	})
+	lastKey := 0
+
+	if req.LastKey != nil && *req.LastKey != 0 {
+		lastKey = *req.LastKey
+	}
+
+	if req.Limit != nil && *req.Limit != 0 {
+		lastKey += *req.Limit
+	}
+
+	if len(comments) == *req.Limit {
+		c.JSON(http.StatusOK, &model.DataResponse{
+			Message: "success",
+			Data: &data{
+				List:    comments,
+				LastKey: &lastKey,
+			},
+		})
+	} else {
+		c.JSON(http.StatusOK, &model.DataResponse{
+			Message: "success",
+			Data: &data{
+				List: comments,
+			},
+		})
+	}
 }

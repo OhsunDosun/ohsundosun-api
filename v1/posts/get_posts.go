@@ -40,7 +40,7 @@ func GetPosts(c *gin.Context) {
 	type request struct {
 		Sort    string  `form:"sort" enums:"NEW,LIKE" binding:"required" example:"NEW"`
 		Keyword *string `form:"keyword"`
-		LastKey *string `form:"lastKey"`
+		LastKey *uint   `form:"lastKey"`
 		Limit   *int    `form:"limit"`
 		MBTI    *string `form:"mbti" enums:"INTJ,INTP,ENTJ,ENTP,INFJ,INFP,ENFJ,ENFP,ISFJ,ISTJ,ESFJ,ESTJ,ISFP,ISTP,ESFP,ESTP"`
 		Type    *string `form:"type" enums:"DAILY,LOVE,FRIEND"`
@@ -48,7 +48,7 @@ func GetPosts(c *gin.Context) {
 
 	type data struct {
 		List    []post `json:"list" binding:"required"`
-		LastKey *uint
+		LastKey *uint  `json:"lastKey"`
 	}
 
 	req := &request{}
@@ -81,7 +81,7 @@ func GetPosts(c *gin.Context) {
 		postsSelect = postsSelect.Where("posts.title LIKE ?", "%"+*req.Keyword+"%")
 	}
 
-	if req.LastKey != nil && *req.LastKey != "" {
+	if req.LastKey != nil && *req.LastKey != 0 {
 		postsSelect = postsSelect.Where("posts.id < ?", *req.LastKey)
 	}
 
