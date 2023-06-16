@@ -61,7 +61,7 @@ func DeleteComment(c *gin.Context) {
 	db.DB.Model(&model.Comment{}).Where(model.Comment{
 		GroupID: &comment.ID,
 		Active:  &active,
-	}).Where("id >", comment.ID).Where("level >", comment.Level).Find(&comments)
+	}).Where("id > ?", comment.ID).Where("level > ?", comment.Level).Find(&comments)
 
 	active = false
 	now := time.Now()
@@ -75,14 +75,16 @@ func DeleteComment(c *gin.Context) {
 			return err
 		}
 
-		if err := tx.Model(&comments).Updates(model.Comment{
-			Active:     &active,
-			InActiveAt: &now,
-		}).Error; err != nil {
-			return err
+		for _, comment := range comments {
+			if err := tx.Model(comment).Updates(model.Comment{
+				Active:     &active,
+				InActiveAt: &now,
+			}).Error; err != nil {
+				return err
+			}
 		}
 
-		if err := tx.Exec("UPDATE posts SET comment_count = comment_count + ? WHERE id = ?", -len(comments), post.ID).Error; err != nil {
+		if err := tx.Exec("UPDATE posts SET comment_count = comment_count + ? WHERE id = ?", -(len(comments) + 1), post.ID).Error; err != nil {
 			return err
 		}
 
