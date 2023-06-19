@@ -22,6 +22,7 @@ type User struct {
 }
 
 type UserToken struct {
+	ID        uint      `gorm:"primaryKey"`
 	UserID    uint      `gorm:"index;not null"`
 	Token     string    `gorm:"not null"`
 	CreatedAt time.Time `gorm:"not null"`
