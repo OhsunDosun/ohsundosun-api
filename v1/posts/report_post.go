@@ -5,6 +5,7 @@ import (
 	"ohsundosun-api/db"
 	"ohsundosun-api/enum"
 	"ohsundosun-api/model"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -25,7 +26,7 @@ func ReportPost(c *gin.Context) {
 
 	var post model.Post
 
-	if err := db.DB.Model(&model.Post{}).First(&post, "uuid = UUID_TO_BIN(?)", postId).Error; err != nil {
+	if err := db.DB.Model(&model.Post{}).First(&post, "uuid = UUID_TO_BIN(?) AND active = true", postId).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, &model.DefaultResponse{
 			Message: "not_found_post",
 		})
@@ -33,18 +34,43 @@ func ReportPost(c *gin.Context) {
 		return
 	}
 
-	report := model.Report{
+	var reports []model.Report
+
+	db.DB.Model(&model.Report{}).Where(model.Report{
 		Type:     enum.ReportType("POST"),
 		UserID:   user.ID,
 		TargetID: post.ID,
-	}
+	}).Find(&reports)
 
-	if err := db.DB.Create(&report).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, &model.DefaultResponse{
-			Message: "failed_insert",
-		})
-		c.Abort()
-		return
+	if len(reports) == 0 {
+		report := model.Report{
+			Type:     enum.ReportType("POST"),
+			UserID:   user.ID,
+			TargetID: post.ID,
+		}
+
+		if err := db.DB.Create(&report).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, &model.DefaultResponse{
+				Message: "failed_insert",
+			})
+			c.Abort()
+			return
+		}
+
+		db.DB.Model(&model.Report{}).Where(model.Report{
+			Type:     enum.ReportType("POST"),
+			TargetID: post.ID,
+		}).Find(&reports)
+
+		if len(reports) > 2 {
+			active := false
+			now := time.Now()
+
+			db.DB.Model(&post).Updates(model.Post{
+				Active:     &active,
+				InActiveAt: &now,
+			})
+		}
 	}
 
 	c.JSON(http.StatusCreated, &model.DefaultResponse{
