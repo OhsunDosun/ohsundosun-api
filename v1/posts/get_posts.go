@@ -12,6 +12,7 @@ import (
 type post struct {
 	ID           uint       `json:"-"`
 	UUID         model.UUID `json:"uuid"  binding:"required" example:"test"`
+	UserUUID     model.UUID `json:"userUUID"  binding:"required" example:"test"`
 	MBTI         string     `json:"mbti" binding:"required" example:"INTP"`
 	Type         string     `json:"type"  binding:"required" example:"DAILY"`
 	Nickname     string     `json:"nickname"  binding:"required" example:"test"`
@@ -27,8 +28,8 @@ type post struct {
 
 // GetPosts godoc
 // @Tags Posts
-// @Summary 게시물 리스트
-// @Description 게시물 리스트
+// @Summary 게시글 리스트
+// @Description 게시글 리스트
 // @Security AppAuth
 // @Param request query posts.GetPosts.request true "query params"
 // @Success 200 {object} model.DataResponse{data=posts.GetPosts.data} "success"
@@ -64,7 +65,7 @@ func GetPosts(c *gin.Context) {
 	var posts []post
 
 	postsSelect := db.DB.Model(&model.Post{})
-	postsSelect = postsSelect.Select("posts.id, posts.uuid, posts.mbti, posts.type, users.nickname, posts.title, posts.content, posts.images, posts.created_at, posts.like_count, posts.comment_count, COUNT(post_likes.id) > 0 as is_like, posts.user_id = ? as is_mine", user.ID)
+	postsSelect = postsSelect.Select("posts.id, posts.uuid, users.uuid as user_uuid, posts.mbti, posts.type, users.nickname, posts.title, posts.content, posts.images, posts.created_at, posts.like_count, posts.comment_count, COUNT(post_likes.id) > 0 as is_like, posts.user_id = ? as is_mine", user.ID)
 	postsSelect = postsSelect.Joins("left join users on posts.user_id = users.id")
 	postsSelect = postsSelect.Joins("left join post_likes on posts.id = post_likes.post_id and post_likes.user_id = ?", user.ID)
 

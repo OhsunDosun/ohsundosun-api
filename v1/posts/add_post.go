@@ -12,8 +12,8 @@ import (
 
 // AddPost godoc
 // @Tags Posts
-// @Summary 게시물 추가
-// @Description 게시물 추가
+// @Summary 게시글 추가
+// @Description 게시글 추가
 // @Security AppAuth
 // @Param request formData posts.AddPost.request true "body params"
 // @Success 201 {object} model.DefaultResponse "success"

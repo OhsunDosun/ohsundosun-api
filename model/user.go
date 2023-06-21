@@ -42,3 +42,10 @@ type UserRating struct {
 	Feedback  *string   `gorm:"default:null"`
 	CreatedAt time.Time `gorm:"not null"`
 }
+
+type UserBlock struct {
+	ID        uint      `gorm:"primaryKey"`
+	UserID    uint      `gorm:"index;not null"`
+	BlockID   uint      `gorm:"index;not null"`
+	CreatedAt time.Time `gorm:"not null"`
+}

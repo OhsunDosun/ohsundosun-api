@@ -11,8 +11,8 @@ import (
 
 // ReportComment godoc
 // @Tags Posts-Comments
-// @Summary 게시물 댓글 신고
-// @Description 게시물 댓글 신고
+// @Summary 게시글 댓글 신고
+// @Description 게시글 댓글 신고
 // @Security AppAuth
 // @Success 201 {object} model.DefaultResponse "success"
 // @Success 404 {object} model.DefaultResponse "not_found_comment"

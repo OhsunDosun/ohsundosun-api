@@ -29,4 +29,5 @@ func init() {
 	// db.AutoMigrate(&model.Report{})
 	// db.AutoMigrate(&model.Comment{})
 	// db.AutoMigrate(&model.Admin{})
+	// db.AutoMigrate(&model.UserBlock{})
 }
