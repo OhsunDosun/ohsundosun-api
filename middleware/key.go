@@ -3,6 +3,7 @@ package middleware
 import (
 	"net/http"
 	"ohsundosun-api/model"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -11,7 +12,7 @@ func CheckAppKey() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		headers := c.Request.Header["App-Key"]
 
-		if len(headers) < 1 {
+		if !contains(headers, os.Getenv("APP_KEY")) {
 			c.JSON(http.StatusUnauthorized, model.DefaultResponse{
 				Message: "unauthorized_app_key",
 			})
@@ -21,4 +22,13 @@ func CheckAppKey() gin.HandlerFunc {
 
 		c.Next()
 	}
+}
+
+func contains(elems []string, v string) bool {
+	for _, s := range elems {
+		if v == s {
+			return true
+		}
+	}
+	return false
 }
