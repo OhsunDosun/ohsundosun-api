@@ -73,6 +73,7 @@ func GetComments(c *gin.Context) {
 
 	commentsSelect = commentsSelect.Where("comments.post_id", post.ID)
 	commentsSelect = commentsSelect.Where("comments.active", true)
+	commentsSelect = commentsSelect.Where("NOT EXISTS(SELECT blocks.id FROM user_blocks as blocks WHERE blocks.block_id = comments.user_id AND blocks.user_id = ?)", user.ID)
 
 	commentsSelect = commentsSelect.Order("comments.group_id desc, comments.level asc")
 

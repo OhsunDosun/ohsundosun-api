@@ -70,6 +70,7 @@ func GetPosts(c *gin.Context) {
 	postsSelect = postsSelect.Joins("left join post_likes on posts.id = post_likes.post_id and post_likes.user_id = ?", user.ID)
 
 	postsSelect = postsSelect.Where("posts.active", true)
+	postsSelect = postsSelect.Where("NOT EXISTS(SELECT blocks.id FROM user_blocks as blocks WHERE blocks.block_id = posts.user_id AND blocks.user_id = ?)", user.ID)
 
 	if req.MBTI != nil && *req.MBTI != "" {
 		postsSelect = postsSelect.Where("posts.mbti", *req.MBTI)
