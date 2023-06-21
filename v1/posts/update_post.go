@@ -12,8 +12,8 @@ import (
 
 // UpdatePost godoc
 // @Tags Posts
-// @Summary 게시물 수정
-// @Description 게시물 수정
+// @Summary 게시글 수정
+// @Description 게시글 수정
 // @Security AppAuth
 // @Param request body posts.UpdatePost.request true "body params"
 // @Success 200 {object} model.DefaultResponse "success"

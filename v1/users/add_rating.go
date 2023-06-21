@@ -50,14 +50,6 @@ func AddRating(c *gin.Context) {
 		return
 	}
 
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, &model.DefaultResponse{
-			Message: "failed_insert",
-		})
-		c.Abort()
-		return
-	}
-
 	c.JSON(http.StatusCreated, &model.DefaultResponse{
 		Message: "success",
 	})

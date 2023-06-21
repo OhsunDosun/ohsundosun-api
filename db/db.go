@@ -28,4 +28,6 @@ func init() {
 	// db.AutoMigrate(&model.PostLike{})
 	// db.AutoMigrate(&model.Report{})
 	// db.AutoMigrate(&model.Comment{})
+	// db.AutoMigrate(&model.Admin{})
+	// db.AutoMigrate(&model.UserBlock{})
 }

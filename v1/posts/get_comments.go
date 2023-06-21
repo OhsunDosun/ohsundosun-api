@@ -12,6 +12,7 @@ import (
 type comment struct {
 	ID        uint       `json:"-"`
 	UUID      model.UUID `json:"uuid"  binding:"required" example:"test"`
+	UserUUID  model.UUID `json:"userUUID"  binding:"required" example:"test"`
 	MBTI      string     `json:"mbti" binding:"required" example:"INTP"`
 	Nickname  string     `json:"nickname"  binding:"required" example:"test"`
 	Level     uint       `json:"level"  binding:"required" example:"0"`
@@ -22,8 +23,8 @@ type comment struct {
 
 // GetComments godoc
 // @Tags Posts-Comments
-// @Summary 게시물 댓글 리스트
-// @Description 게시물 댓글 리스트
+// @Summary 게시글 댓글 리스트
+// @Description 게시글 댓글 리스트
 // @Security AppAuth
 // @Param request query posts.GetComments.request true "query params"
 // @Success 200 {object} model.DataResponse{data=posts.GetComments.data} "success"
@@ -67,11 +68,12 @@ func GetComments(c *gin.Context) {
 	var comments []comment
 
 	commentsSelect := db.DB.Model(&model.Comment{})
-	commentsSelect = commentsSelect.Select("comments.id, comments.uuid, users.mbti, users.nickname, comments.level, comments.content, comments.created_at, comments.user_id = ? as is_mine", user.ID)
+	commentsSelect = commentsSelect.Select("comments.id, comments.uuid, users.uuid as user_uuid, users.mbti, users.nickname, comments.level, comments.content, comments.created_at, comments.user_id = ? as is_mine", user.ID)
 	commentsSelect = commentsSelect.Joins("left join users on comments.user_id = users.id")
 
 	commentsSelect = commentsSelect.Where("comments.post_id", post.ID)
 	commentsSelect = commentsSelect.Where("comments.active", true)
+	commentsSelect = commentsSelect.Where("NOT EXISTS(SELECT blocks.id FROM user_blocks as blocks WHERE blocks.block_id = comments.user_id AND blocks.user_id = ?)", user.ID)
 
 	commentsSelect = commentsSelect.Order("comments.group_id desc, comments.level asc")
 

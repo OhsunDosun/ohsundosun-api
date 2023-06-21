@@ -56,6 +56,14 @@ func CheckAccessToken() gin.HandlerFunc {
 			return
 		}
 
+		if !*user.Active {
+			c.JSON(http.StatusForbidden, &model.DefaultResponse{
+				Message: "disabled_user",
+			})
+			c.Abort()
+			return
+		}
+
 		c.Set("user", user)
 
 		c.Next()
@@ -103,6 +111,14 @@ func CheckRefreshToken() gin.HandlerFunc {
 		if err := db.DB.Model(&model.User{}).First(&user, "uuid = UUID_TO_BIN(?)", claims.UUID).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, &model.DefaultResponse{
 				Message: "unauthorized_access_token",
+			})
+			c.Abort()
+			return
+		}
+
+		if !*user.Active {
+			c.JSON(http.StatusForbidden, &model.DefaultResponse{
+				Message: "disabled_user",
 			})
 			c.Abort()
 			return

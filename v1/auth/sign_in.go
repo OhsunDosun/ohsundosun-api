@@ -50,6 +50,14 @@ func SignIn(c *gin.Context) {
 		return
 	}
 
+	if !*user.Active {
+		c.JSON(http.StatusForbidden, &model.DefaultResponse{
+			Message: "disabled_user",
+		})
+		c.Abort()
+		return
+	}
+
 	if strings.ToUpper(req.Type) == "DEFAULT" {
 		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
 

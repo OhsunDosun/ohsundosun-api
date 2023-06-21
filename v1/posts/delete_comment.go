@@ -12,8 +12,8 @@ import (
 
 // DeletePost godoc
 // @Tags Posts-Comments
-// @Summary 게시물 댓글 삭제
-// @Description 게시물 댓글 삭제
+// @Summary 게시글 댓글 삭제
+// @Description 게시글 댓글 삭제
 // @Security AppAuth
 // @Success 200 {object} model.DefaultResponse "success"
 // @Success 403 {object} model.DefaultResponse "forbidden"

@@ -22,6 +22,7 @@ type User struct {
 }
 
 type UserToken struct {
+	ID        uint      `gorm:"primaryKey"`
 	UserID    uint      `gorm:"index;not null"`
 	Token     string    `gorm:"not null"`
 	CreatedAt time.Time `gorm:"not null"`
@@ -39,5 +40,12 @@ type UserRating struct {
 	UserID    uint      `gorm:"index;not null"`
 	Rating    float32   `gorm:"default:0;not null"`
 	Feedback  *string   `gorm:"default:null"`
+	CreatedAt time.Time `gorm:"not null"`
+}
+
+type UserBlock struct {
+	ID        uint      `gorm:"primaryKey"`
+	UserID    uint      `gorm:"index;not null"`
+	BlockID   uint      `gorm:"index;not null"`
 	CreatedAt time.Time `gorm:"not null"`
 }

@@ -10,8 +10,8 @@ import (
 
 // GetPost godoc
 // @Tags Posts
-// @Summary 게시물 상세
-// @Description 게시물 상세
+// @Summary 게시글 상세
+// @Description 게시글 상세
 // @Security AppAuth
 // @Success 200 {object} model.DataResponse{data=posts.post} "success"
 // @Success 404 {object} model.DefaultResponse "not_found_post"
@@ -24,7 +24,7 @@ func GetPost(c *gin.Context) {
 	var data post
 
 	postsSelect := db.DB.Model(&model.Post{})
-	postsSelect = postsSelect.Select("posts.id, posts.uuid, posts.mbti, posts.type, users.nickname, posts.title, posts.content, posts.images, posts.created_at, posts.like_count, posts.comment_count, COUNT(post_likes.id) > 0 as is_like, posts.user_id = ? as is_mine", user.ID)
+	postsSelect = postsSelect.Select("posts.id, posts.uuid, users.uuid as user_uuid, posts.mbti, posts.type, users.nickname, posts.title, posts.content, posts.images, posts.created_at, posts.like_count, posts.comment_count, COUNT(post_likes.id) > 0 as is_like, posts.user_id = ? as is_mine", user.ID)
 	postsSelect = postsSelect.Joins("left join users on posts.user_id = users.id")
 	postsSelect = postsSelect.Joins("left join post_likes on posts.id = post_likes.post_id and post_likes.user_id = ?", user.ID)
 	postsSelect = postsSelect.Where("posts.active", true)

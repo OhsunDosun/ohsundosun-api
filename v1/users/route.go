@@ -10,6 +10,9 @@ func SetRoute(rg *gin.RouterGroup) {
 	auth := rg.Group("/users")
 	{
 		auth.POST("", SignUp)
+
+		auth.POST(":userId/block", middleware.CheckAccessToken(), BlockUser)
+
 		auth.GET("", middleware.CheckAccessToken(), GetUser)
 		auth.PATCH("password", middleware.CheckAccessToken(), UpdatePaasword)
 		auth.PATCH("nickname", middleware.CheckAccessToken(), UpdateNickname)

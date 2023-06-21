@@ -11,8 +11,8 @@ import (
 
 // AddComment godoc
 // @Tags Posts-Comments
-// @Summary 게시물 댓글 추가
-// @Description 게시물 댓글 추가
+// @Summary 게시글 댓글 추가
+// @Description 게시글 댓글 추가
 // @Security AppAuth
 // @Param request body posts.AddComment.request true "body params"
 // @Success 201 {object} model.DefaultResponse "success"
