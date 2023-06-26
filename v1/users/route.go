@@ -12,6 +12,7 @@ func SetRoute(rg *gin.RouterGroup) {
 		auth.POST("", SignUp)
 
 		auth.POST(":userId/block", middleware.CheckAccessToken(), BlockUser)
+		auth.DELETE(":userId", middleware.CheckAccessToken(), DeleteUser)
 
 		auth.GET("", middleware.CheckAccessToken(), GetUser)
 		auth.PATCH("password", middleware.CheckAccessToken(), UpdatePaasword)
