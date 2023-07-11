@@ -1,0 +1,16 @@
+name: keep alive
+on:
+  schedule:
+    - cron: "0 0 */2 * *"
+jobs:
+  cron:
+    runs-on: ubuntu-latest
+    steps:
+      # Call endpoint to keep alive
+      - run: |
+          curl --request POST \
+            --url '${{ secrets.DEV_API_URL }}/keep-alive' \
+            --header 'Keep-Alive-Key: ${{ secrets.KEEP_ALIVE_KEY }}'
+          curl --request POST \
+            --url '${{ secrets.PROD_API_URL }}/keep-alive' \
+            --header 'Keep-Alive-Key: ${{ secrets.KEEP_ALIVE_KEY }}'

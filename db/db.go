@@ -30,4 +30,5 @@ func init() {
 	// db.AutoMigrate(&model.Comment{})
 	// db.AutoMigrate(&model.Admin{})
 	// db.AutoMigrate(&model.UserBlock{})
+	// db.AutoMigrate(&model.Tmp{})
 }
