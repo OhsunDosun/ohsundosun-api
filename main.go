@@ -11,7 +11,10 @@ import (
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
+	"ohsundosun-api/db"
 	_ "ohsundosun-api/db"
+	"ohsundosun-api/middleware"
+	"ohsundosun-api/model"
 
 	docs "ohsundosun-api/docs"
 	v1 "ohsundosun-api/v1"
@@ -59,6 +62,25 @@ func main() {
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "pong",
+		})
+	})
+
+	r.POST("/keep-alive", middleware.CheckKeepAliveKey(), func(c *gin.Context) {
+
+		db.DB.Exec("DELETE FROM tmps")
+
+		tmp := model.Tmp{}
+
+		if err := db.DB.Create(&tmp).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, &model.DefaultResponse{
+				Message: "failed_insert",
+			})
+			c.Abort()
+			return
+		}
+
+		c.JSON(http.StatusCreated, &model.DefaultResponse{
+			Message: "success",
 		})
 	})
 
